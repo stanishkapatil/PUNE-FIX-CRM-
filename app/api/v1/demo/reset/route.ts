@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { randomUUID } from "crypto";
 import { FieldValue, Timestamp, type WriteBatch } from "firebase-admin/firestore";
 
-import { firebaseAdminDb } from "../../../../../lib/firebase/admin";
+import { getFirebaseAdminDb } from "../../../../../lib/firebase/admin";
 import { generateCaseNumber } from "../../../../../lib/utils/caseNumber";
 import { getSLADuration, getSLADeadline } from "../../../../../lib/utils/sla";
 import { calculatePriorityScore } from "../../../../../lib/scoring/priority";
@@ -30,10 +30,10 @@ async function commitBatches(batches: WriteBatch[]) {
 
 async function deleteRecentCases(nowMs: number) {
   const since = nowMs - 24 * 60 * 60 * 1000;
-  const snap = await firebaseAdminDb.collection("cases").where("created_at_ms", ">=", since).get();
+  const snap = await getFirebaseAdminDb().collection("cases").where("created_at_ms", ">=", since).get();
 
   const batches: WriteBatch[] = [];
-  let batch = firebaseAdminDb.batch();
+  let batch = getFirebaseAdminDb().batch();
   let ops = 0;
 
   for (const d of snap.docs) {
@@ -45,7 +45,7 @@ async function deleteRecentCases(nowMs: number) {
         ops += 1;
         if (ops >= 450) {
           batches.push(batch);
-          batch = firebaseAdminDb.batch();
+          batch = getFirebaseAdminDb().batch();
           ops = 0;
         }
       }
@@ -57,7 +57,7 @@ async function deleteRecentCases(nowMs: number) {
     ops += 1;
     if (ops >= 450) {
       batches.push(batch);
-      batch = firebaseAdminDb.batch();
+      batch = getFirebaseAdminDb().batch();
       ops = 0;
     }
   }
@@ -69,16 +69,16 @@ async function deleteRecentCases(nowMs: number) {
 }
 
 async function deactivateAlerts() {
-  const snap = await firebaseAdminDb.collection("alerts").where("is_active", "==", true).get();
+  const snap = await getFirebaseAdminDb().collection("alerts").where("is_active", "==", true).get();
   const batches: WriteBatch[] = [];
-  let batch = firebaseAdminDb.batch();
+  let batch = getFirebaseAdminDb().batch();
   let ops = 0;
   for (const d of snap.docs) {
     batch.set(d.ref, { is_active: false, updated_at: FieldValue.serverTimestamp() }, { merge: true });
     ops += 1;
     if (ops >= 450) {
       batches.push(batch);
-      batch = firebaseAdminDb.batch();
+      batch = getFirebaseAdminDb().batch();
       ops = 0;
     }
   }
@@ -481,7 +481,7 @@ export async function POST(req: NextRequest) {
     const seeds = seedData();
 
     const batches: WriteBatch[] = [];
-    let batch = firebaseAdminDb.batch();
+    let batch = getFirebaseAdminDb().batch();
     let ops = 0;
 
     for (let i = 0; i < seeds.length; i++) {
@@ -507,7 +507,7 @@ export async function POST(req: NextRequest) {
         is_recurring: s.is_recurring,
       });
 
-      const ref = firebaseAdminDb.collection("cases").doc(caseId);
+      const ref = getFirebaseAdminDb().collection("cases").doc(caseId);
       batch.set(ref, {
         id: caseId,
         case_number: caseNumber,
@@ -573,7 +573,7 @@ export async function POST(req: NextRequest) {
 
       if (ops >= 450) {
         batches.push(batch);
-        batch = firebaseAdminDb.batch();
+        batch = getFirebaseAdminDb().batch();
         ops = 0;
       }
     }
