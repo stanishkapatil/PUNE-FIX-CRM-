@@ -1,100 +1,112 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900">
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-[#1B2A4A] text-white flex items-center justify-center font-semibold">
+              P
+            </div>
+            <div>
+              <div className="text-lg font-semibold text-[#1B2A4A] leading-none">P-CRM</div>
+              <div className="text-xs text-slate-500">Smart grievance management</div>
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-3">
+            <a
+              href="/submit"
+              className="inline-flex items-center justify-center rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8]"
+            >
+              Submit a Complaint
+            </a>
+            <a
+              href="/track"
+              className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Track Complaint
+            </a>
+          </div>
         </div>
+      </header>
+
+      <main>
+        <section className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            <div>
+              <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#1B2A4A]">
+                Your Voice, Our Priority
+              </h1>
+              <p className="mt-4 text-base sm:text-lg text-slate-600">
+                Smart grievance management for Pune citizens
+              </p>
+
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                <a
+                  href="/submit"
+                  className="h-11 sm:h-12 px-5 rounded-lg bg-[#2563EB] text-white text-base font-semibold inline-flex items-center justify-center hover:bg-[#1d4ed8]"
+                >
+                  Submit a Complaint
+                </a>
+                <a
+                  href="/track"
+                  className="h-11 sm:h-12 px-5 rounded-lg border border-slate-200 bg-white text-slate-800 text-base font-semibold inline-flex items-center justify-center hover:bg-slate-50"
+                >
+                  Track Your Complaint
+                </a>
+              </div>
+
+              <div className="mt-8 rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
+                <div className="text-sm font-semibold text-[#1B2A4A]">How it works</div>
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
+                    <div className="text-xs font-semibold text-slate-700">Step 1</div>
+                    <div className="mt-1 text-sm font-semibold text-slate-900">Submit</div>
+                    <div className="mt-1 text-xs text-slate-600">Share details and ward.</div>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
+                    <div className="text-xs font-semibold text-slate-700">Step 2</div>
+                    <div className="mt-1 text-sm font-semibold text-slate-900">AI Analyses</div>
+                    <div className="mt-1 text-xs text-slate-600">Classifies urgency and department.</div>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
+                    <div className="text-xs font-semibold text-slate-700">Step 3</div>
+                    <div className="mt-1 text-sm font-semibold text-slate-900">Gets Resolved</div>
+                    <div className="mt-1 text-xs text-slate-600">Assigned and tracked to closure.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="text-sm font-semibold text-[#1B2A4A]">City impact at a glance</div>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="rounded-lg bg-[#F8FAFC] border border-slate-200 p-4">
+                  <div className="text-2xl font-bold text-[#1B2A4A]">20,000+</div>
+                  <div className="mt-1 text-xs text-slate-600">complaints resolved</div>
+                </div>
+                <div className="rounded-lg bg-[#F8FAFC] border border-slate-200 p-4">
+                  <div className="text-2xl font-bold text-[#1B2A4A]">72hr</div>
+                  <div className="mt-1 text-xs text-slate-600">average resolution</div>
+                </div>
+                <div className="rounded-lg bg-[#F8FAFC] border border-slate-200 p-4">
+                  <div className="text-2xl font-bold text-[#1B2A4A]">15</div>
+                  <div className="mt-1 text-xs text-slate-600">departments</div>
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                Get instant tracking and real-time updates without visiting an office.
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      <footer className="border-t border-slate-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-slate-600 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+          <div className="font-semibold text-[#1B2A4A]">P-CRM v1.0</div>
+          <div>JSPM JSCOE Innovation Challenge 2026</div>
+        </div>
       </footer>
     </div>
   );
