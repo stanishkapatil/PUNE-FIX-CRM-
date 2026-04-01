@@ -14,6 +14,12 @@ export default function Home() {
           </div>
           <div className="hidden sm:flex items-center gap-3">
             <a
+              href="/login"
+              className="text-sm font-medium text-slate-600 hover:text-[#1B2A4A] px-2"
+            >
+              Staff Login
+            </a>
+            <a
               href="/submit"
               className="inline-flex items-center justify-center rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8]"
             >
@@ -105,7 +111,11 @@ export default function Home() {
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-slate-600 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
           <div className="font-semibold text-[#1B2A4A]">P-CRM v1.0</div>
-          <div>JSPM JSCOE Innovation Challenge 2026</div>
+          <div className="flex flex-wrap items-center gap-4 mt-2 sm:mt-0">
+            <a href="/login" className="hover:text-[#1B2A4A]">Staff Login</a>
+            <span className="hidden sm:inline">•</span>
+            <span>JSPM JSCOE Innovation Challenge 2026</span>
+          </div>
         </div>
       </footer>
     </div>

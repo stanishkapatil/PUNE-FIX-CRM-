@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Sidebar } from "../../components/layout/Sidebar";
@@ -12,7 +12,7 @@ import { CategoryChart } from "../../components/dashboard/CategoryChart";
 import { CascadeAlert } from "../../components/dashboard/CascadeAlert";
 import { DemoControlPanel } from "../../components/demo/DemoControlPanel";
 
-export default function DemoPage() {
+function DemoContent() {
   const router = useRouter();
   const params = useSearchParams();
   const token = params.get("token");
@@ -73,6 +73,14 @@ export default function DemoPage() {
 
       <DemoControlPanel />
     </div>
+  );
+}
+
+export default function DemoPage() {
+  return (
+    <Suspense fallback={null}>
+      <DemoContent />
+    </Suspense>
   );
 }
 

@@ -3,54 +3,28 @@ import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 
-type ClientEnv = {
-  NEXT_PUBLIC_FIREBASE_API_KEY: string;
-  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: string;
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID: string;
-  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: string;
-  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: string;
-  NEXT_PUBLIC_FIREBASE_APP_ID: string;
-};
-
-function getClientEnv(): ClientEnv {
-  const required = [
-    "NEXT_PUBLIC_FIREBASE_API_KEY",
-    "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
-    "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
-    "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
-    "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
-    "NEXT_PUBLIC_FIREBASE_APP_ID",
-  ] as const;
-
-  const missing = required.filter((k) => !process.env[k] || process.env[k]?.trim() === "");
-  if (missing.length) {
-    throw new Error(
-      `Missing required Firebase client env vars: ${missing.join(", ")}. ` +
-        `Define them in .env.local (public NEXT_PUBLIC_* vars).`,
-    );
-  }
-
-  return {
-    NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
-    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
-    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
-    NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
-  };
-}
-
 function initFirebaseClient(): FirebaseApp {
-  const env = getClientEnv();
-
   const firebaseConfig = {
-    apiKey: env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    apiKey: "AIzaSyAa7Lqp4oC0GBffhOTiPNcg6KH2xrcBZaM",
+    authDomain: "p-crm-5f24c.firebaseapp.com",
+    projectId: "p-crm-5f24c",
+    storageBucket: "p-crm-5f24c.firebasestorage.app",
+    messagingSenderId: "1072484398343",
+    appId: "1:1072484398343:web:7720546ad489b8d52381a2"
   };
+
+  if (process.env.NODE_ENV !== "production") {
+    // Safe debug info (no tokens, no private keys). API key is public but we still redact most of it.
+    const apiKey = firebaseConfig.apiKey;
+    const apiKeyRedacted =
+      typeof apiKey === "string" && apiKey.length > 10 ? `${apiKey.slice(0, 6)}…${apiKey.slice(-4)}` : "missing";
+    console.info("[firebase] client config", {
+      projectId: firebaseConfig.projectId,
+      authDomain: firebaseConfig.authDomain,
+      storageBucket: firebaseConfig.storageBucket,
+      apiKey: apiKeyRedacted,
+    });
+  }
 
   return getApps().length ? getApp() : initializeApp(firebaseConfig);
 }

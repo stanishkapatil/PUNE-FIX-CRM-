@@ -8,7 +8,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 function loadEnvLocal() {
   const p = resolve(process.cwd(), ".env.local");
-  const raw = readFileSync(p, "utf8");
+  const buf = readFileSync(p);
+  // Some Windows editors save .env.local as UTF-16LE; handle both encodings.
+  const raw = buf.includes(0) ? buf.toString("utf16le") : buf.toString("utf8");
   for (const line of raw.split(/\r?\n/)) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
@@ -19,7 +21,8 @@ function loadEnvLocal() {
     if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
       val = val.slice(1, -1);
     }
-    if (process.env[key] === undefined) process.env[key] = val;
+    // Allow .env.local to fill in empty env vars (common on Windows shells).
+    if (process.env[key] === undefined || process.env[key] === "") process.env[key] = val;
   }
 }
 

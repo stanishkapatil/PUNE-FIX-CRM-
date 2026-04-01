@@ -37,7 +37,7 @@ export async function generateBrief(
   }
 
   const genAI = new GoogleGenerativeAI(getGeminiApiKey());
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
   const compact = safeCases.slice(0, 50).map((c) => ({
     id: c.id,
@@ -63,8 +63,14 @@ export async function generateBrief(
     JSON.stringify(compact),
   ].join("\n");
 
-  const result = await model.generateContent(prompt);
-  const brief = result.response.text().trim().replace(/\s+/g, " ");
+  let brief = "";
+  try {
+    const result = await model.generateContent(prompt);
+    brief = result.response.text().trim().replace(/\s+/g, " ");
+  } catch (e: any) {
+    console.warn("[AI Brief] Failed to generate, falling back:", e.message);
+    brief = `AI summary is currently unavailable. Tracking ${safeCases.length} active cases across all wards. Please review the top priority queue for immediate action.`;
+  }
 
   return { brief, topPriorityCaseIds };
 }

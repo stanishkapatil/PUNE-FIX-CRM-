@@ -51,8 +51,8 @@ const ALLOWED_TRANSITIONS: Record<string, string[]> = {
   closed: [],
 };
 
-export async function GET(_: NextRequest, ctx: { params: { id: string } }) {
-  const id = ctx.params.id;
+export async function GET(_: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
   if (!id?.trim()) return jsonError(400, "INVALID_ID", "Missing case id");
 
   const caseRef = getFirebaseAdminDb().collection("cases").doc(id);
@@ -65,8 +65,8 @@ export async function GET(_: NextRequest, ctx: { params: { id: string } }) {
   return NextResponse.json({ ok: true, data: { case: { id: snap.id, ...(snap.data() as any) }, timeline } }, { status: 200 });
 }
 
-export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
-  const id = ctx.params.id;
+export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
   if (!id?.trim()) return jsonError(400, "INVALID_ID", "Missing case id");
 
   let actor: { uid: string; role: string; name?: string };

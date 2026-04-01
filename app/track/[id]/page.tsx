@@ -2,7 +2,10 @@
 
 import { CaseTracker } from "../../../components/citizen/CaseTracker";
 
-export default function TrackPage({ params }: { params: { id: string } }) {
+import { use } from "react";
+
+export default function TrackPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <header className="border-b border-slate-200 bg-white">
@@ -26,7 +29,7 @@ export default function TrackPage({ params }: { params: { id: string } }) {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
-        <CaseTracker identifier={params.id} />
+        <CaseTracker identifier={id} />
       </main>
 
       <footer className="border-t border-slate-200 bg-white">

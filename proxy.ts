@@ -12,6 +12,7 @@ function isPublicApi(req: NextRequest): boolean {
   const { pathname } = req.nextUrl;
 
   // Public API routes
+  if (pathname === "/api/v1/auth/session") return true; // set/clear session cookie
   if (pathname === "/api/v1/feedback") return true;
   if (pathname === "/api/v1/ai/classify") return true; // internal call
   if (pathname === "/api/v1/cases") return req.method === "POST"; // POST only
@@ -23,8 +24,10 @@ function isPublicApi(req: NextRequest): boolean {
 function isProtectedAppRoute(pathname: string): boolean {
   return (
     pathname === "/dashboard" ||
+    pathname === "/staff-dashboard" ||
     pathname.startsWith("/cases") ||
     pathname === "/mla" ||
+    pathname === "/mla-dashboard" ||
     pathname === "/admin"
   );
 }
@@ -39,7 +42,7 @@ function getSessionCookie(req: NextRequest): string | null {
   return null;
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Ignore Next internals/static

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, Filter, Loader2 } from "lucide-react";
@@ -61,8 +61,8 @@ function buildQuery(filters: { status: string; ward: string; category: string },
   if (filters.ward) clauses.push(where("ward", "==", filters.ward));
   if (filters.category) clauses.push(where("category", "==", filters.category));
 
-  let q = query(casesCol, ...clauses, orderBy("priority.priority_score", "desc"), limit(20));
-  if (cursor) q = query(casesCol, ...clauses, orderBy("priority.priority_score", "desc"), startAfter(cursor), limit(20));
+  let q = query(casesCol, ...clauses, limit(100));
+  if (cursor) q = query(casesCol, ...clauses, startAfter(cursor), limit(100));
   return q;
 }
 
@@ -98,7 +98,7 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
-export default function CasesPage() {
+function CasesContent() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -133,10 +133,10 @@ export default function CasesPage() {
     cursorRef.current = undefined;
     try {
       const snap = await getDocs(buildQuery(filters));
-      const nextRows = snap.docs.map(docToRow);
+      const nextRows = snap.docs.map(docToRow).sort((a, b) => (b.priority?.priority_score || 0) - (a.priority?.priority_score || 0));
       setRows(nextRows);
       cursorRef.current = snap.docs[snap.docs.length - 1];
-      setHasMore(snap.size === 20);
+      setHasMore(snap.size === 100);
     } catch {
       setError("Failed to load cases.");
       setRows([]);
@@ -163,10 +163,10 @@ export default function CasesPage() {
     setError(null);
     try {
       const snap = await getDocs(buildQuery(filters, cursorRef.current));
-      const nextRows = snap.docs.map(docToRow);
-      setRows((prev) => [...prev, ...nextRows]);
+      const nextRows = snap.docs.map(docToRow).sort((a, b) => (b.priority?.priority_score || 0) - (a.priority?.priority_score || 0));
+      setRows((prev) => [...prev, ...nextRows].sort((a, b) => (b.priority?.priority_score || 0) - (a.priority?.priority_score || 0)));
       cursorRef.current = snap.docs[snap.docs.length - 1];
-      setHasMore(snap.size === 20);
+      setHasMore(snap.size === 100);
     } catch {
       setError("Failed to load more cases.");
     } finally {
@@ -334,6 +334,14 @@ export default function CasesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CasesPage() {
+  return (
+    <Suspense fallback={null}>
+      <CasesContent />
+    </Suspense>
   );
 }
 

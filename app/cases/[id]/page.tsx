@@ -4,7 +4,10 @@ import { Sidebar } from "../../../components/layout/Sidebar";
 import { Header } from "../../../components/layout/Header";
 import { CaseDetail } from "../../../components/cases/CaseDetail";
 
-export default function CaseDetailPage({ params }: { params: { id: string } }) {
+import { use } from "react";
+
+export default function CaseDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <div className="flex">
@@ -16,7 +19,7 @@ export default function CaseDetailPage({ params }: { params: { id: string } }) {
           </div>
 
           <main className="px-4 md:px-6 py-6">
-            <CaseDetail caseId={params.id} />
+            <CaseDetail caseId={id} />
           </main>
         </div>
       </div>

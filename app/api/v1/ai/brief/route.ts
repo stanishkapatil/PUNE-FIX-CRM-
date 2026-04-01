@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
     const { brief, topPriorityCaseIds } = await generateBrief(cases as any);
 
     return NextResponse.json({ ok: true, data: { brief, topPriorityCaseIds } }, { status: 200 });
-  } catch {
-    return jsonError(500, "BRIEF_FAILED", "Failed to generate brief");
+  } catch (e: any) {
+    return jsonError(500, "BRIEF_FAILED", "Failed to generate brief: " + (e?.message || "Unknown error"));
   }
 }
 

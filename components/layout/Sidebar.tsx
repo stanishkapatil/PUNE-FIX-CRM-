@@ -18,9 +18,9 @@ type NavItem = {
 };
 
 function isActive(pathname: string, href: string): boolean {
-  if (href === "/dashboard") return pathname === "/dashboard";
+  if (href === "/staff-dashboard") return pathname === "/staff-dashboard" || pathname === "/dashboard";
   if (href === "/cases") return pathname === "/cases" || pathname.startsWith("/cases/");
-  if (href === "/mla") return pathname === "/mla";
+  if (href === "/mla-dashboard") return pathname === "/mla-dashboard" || pathname === "/mla";
   if (href === "/admin") return pathname === "/admin";
   return pathname === href;
 }
@@ -55,16 +55,20 @@ export function Sidebar() {
 
   const navItems: NavItem[] = useMemo(
     () => [
-      { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" aria-hidden="true" /> },
+      {
+        label: "Dashboard",
+        href: "/staff-dashboard",
+        icon: <LayoutDashboard className="h-4 w-4" aria-hidden="true" />,
+      },
       { label: "Cases", href: "/cases", icon: <FileText className="h-4 w-4" aria-hidden="true" /> },
       {
         label: "Alerts",
-        href: "/dashboard?view=alerts",
+        href: "/staff-dashboard?view=alerts",
         icon: <AlertCircle className="h-4 w-4" aria-hidden="true" />,
       },
       {
         label: "MLA View",
-        href: "/mla",
+        href: "/mla-dashboard",
         icon: <UserCircle2 className="h-4 w-4" aria-hidden="true" />,
         roles: [UserRole.mla, UserRole.admin],
       },
@@ -81,6 +85,11 @@ export function Sidebar() {
   const visibleItems = navItems.filter((i) => !i.roles || (role ? i.roles.includes(role) : false));
 
   const doLogout = async () => {
+    try {
+      await fetch("/api/v1/auth/session", { method: "DELETE" });
+    } catch {
+      // best-effort (local cookie clear); signOut still ensures client state is cleared
+    }
     await signOut(firebaseAuth);
     router.replace("/login");
   };

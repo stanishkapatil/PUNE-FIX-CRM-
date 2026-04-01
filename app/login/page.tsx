@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,9 +19,10 @@ const LoginSchema = z.object({
 type LoginValues = z.infer<typeof LoginSchema>;
 
 function roleToPath(role: UserRole): string {
-  if (role === "mla") return "/mla";
+  if (role === "mla") return "/mla-dashboard";
   if (role === "admin") return "/admin";
-  return "/dashboard";
+  // staff + supervisor default
+  return "/staff-dashboard";
 }
 
 async function fetchRole(uid: string): Promise<UserRole> {
@@ -32,7 +33,17 @@ async function fetchRole(uid: string): Promise<UserRole> {
   return role;
 }
 
-export default function LoginPage() {
+async function setSessionCookie(idToken: string): Promise<void> {
+  const res = await fetch("/api/v1/auth/session", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ idToken }),
+  });
+  const json = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(json?.error || "Failed to create session");
+}
+
+function LoginContent() {
   const router = useRouter();
   const params = useSearchParams();
   const nextParam = params.get("next");
@@ -54,7 +65,12 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginValues) => {
     setServerError(null);
     try {
+      if (process.env.NODE_ENV !== "production") {
+        console.info("[auth] login attempt", { email: values.email });
+      }
       const cred = await signInWithEmailAndPassword(firebaseAuth, values.email, values.password);
+      const idToken = await cred.user.getIdToken();
+      await setSessionCookie(idToken);
       const role = await fetchRole(cred.user.uid);
 
       // If middleware passed a "next" route, prefer it when it matches the role area.
@@ -62,7 +78,15 @@ export default function LoginPage() {
 
       router.replace(destination);
     } catch (e: any) {
-      const msg = typeof e?.message === "string" ? e.message : "Login failed. Please try again.";
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[auth] login failed", { code: e?.code, message: e?.message });
+      }
+      const msg =
+        e?.code === "auth/invalid-credential"
+          ? "Invalid email or password."
+          : typeof e?.message === "string"
+            ? e.message
+            : "Login failed. Please try again.";
       setServerError(msg);
     }
   };
@@ -140,6 +164,14 @@ export default function LoginPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
   );
 }
 

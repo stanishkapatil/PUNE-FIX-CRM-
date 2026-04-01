@@ -8,9 +8,11 @@ import { NotificationBell } from "./NotificationBell";
 
 function titleFromPath(pathname: string): string {
   if (pathname === "/dashboard") return "Dashboard";
+  if (pathname === "/staff-dashboard") return "Dashboard";
   if (pathname === "/cases") return "Cases";
   if (pathname.startsWith("/cases/")) return "Case Details";
   if (pathname === "/mla") return "MLA View";
+  if (pathname === "/mla-dashboard") return "MLA View";
   if (pathname === "/admin") return "Admin Panel";
   return "P-CRM";
 }
