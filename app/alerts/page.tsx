@@ -182,7 +182,9 @@ export default function AlertsPage() {
                 onClick={() => markRead(alert.id)}
                 style={{
                   background: alert.isRead ? 'white' : s.bg,
-                  border: `1px solid ${alert.isRead ? '#E2E8F0' : s.border}`,
+                  borderTop: `1px solid ${alert.isRead ? '#E2E8F0' : s.border}`,
+                  borderRight: `1px solid ${alert.isRead ? '#E2E8F0' : s.border}`,
+                  borderBottom: `1px solid ${alert.isRead ? '#E2E8F0' : s.border}`,
                   borderLeft: `4px solid ${s.border}`,
                   borderRadius: 12, padding: '20px 24px',
                   cursor: 'pointer',
