@@ -38,7 +38,7 @@ export default function SubmitPage() {
 
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-3xl px-4 py-6 text-sm text-slate-600">
-          P-CRM v1.0 — JSPM JSCOE Innovation Challenge 2026
+          P-CRM v1.0
         </div>
       </footer>
     </div>

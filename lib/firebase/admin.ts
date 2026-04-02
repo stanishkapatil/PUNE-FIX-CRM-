@@ -5,47 +5,43 @@ import { getAuth, type Auth } from "firebase-admin/auth";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import { getStorage, type Storage } from "firebase-admin/storage";
 
-type AdminEnv = {
-  FIREBASE_ADMIN_PROJECT_ID: string;
-  FIREBASE_ADMIN_CLIENT_EMAIL: string;
-  FIREBASE_ADMIN_PRIVATE_KEY: string;
-};
+function initFirebaseAdmin(): App {
+  if (getApps().length > 0) return getApps()[0]!;
 
-function getAdminEnv(): AdminEnv {
-  const required = [
-    "FIREBASE_ADMIN_PROJECT_ID",
-    "FIREBASE_ADMIN_CLIENT_EMAIL",
-    "FIREBASE_ADMIN_PRIVATE_KEY",
-  ] as const;
+  let credential;
+  
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+    try {
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+      credential = cert(serviceAccount);
+    } catch (e) {
+      console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY", e);
+      throw e;
+    }
+  } else {
+    // Fallback to individual env vars
+    const required = [
+      "FIREBASE_ADMIN_PROJECT_ID",
+      "FIREBASE_ADMIN_CLIENT_EMAIL",
+      "FIREBASE_ADMIN_PRIVATE_KEY",
+    ] as const;
 
-  const missing = required.filter((k) => !process.env[k] || process.env[k]?.trim() === "");
-  if (missing.length) {
-    throw new Error(
-      `Missing required Firebase Admin env vars: ${missing.join(", ")}. ` +
-        `Define them in .env.local (server-only, do not prefix with NEXT_PUBLIC_).`,
-    );
+    const missing = required.filter((k) => !process.env[k] || process.env[k]?.trim() === "");
+    if (missing.length) {
+      throw new Error(
+        `Missing required Firebase Admin env vars: ${missing.join(", ")} or FIREBASE_SERVICE_ACCOUNT_KEY.`
+      );
+    }
+    
+    credential = cert({
+      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+    });
   }
 
-  return {
-    FIREBASE_ADMIN_PROJECT_ID: process.env.FIREBASE_ADMIN_PROJECT_ID!,
-    FIREBASE_ADMIN_CLIENT_EMAIL: process.env.FIREBASE_ADMIN_CLIENT_EMAIL!,
-    FIREBASE_ADMIN_PRIVATE_KEY: process.env.FIREBASE_ADMIN_PRIVATE_KEY!,
-  };
-}
-
-function initFirebaseAdmin(): App {
-  const env = getAdminEnv();
-
-  const privateKey = env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, "\n");
-
-  if (getApps().length) return getApps()[0]!;
-
   return initializeApp({
-    credential: cert({
-      projectId: env.FIREBASE_ADMIN_PROJECT_ID,
-      clientEmail: env.FIREBASE_ADMIN_CLIENT_EMAIL,
-      privateKey,
-    }),
+    credential,
   });
 }
 
@@ -73,4 +69,3 @@ export function getFirebaseAdminStorage(): Storage {
   cachedStorage ??= getStorage(getFirebaseAdminApp());
   return cachedStorage;
 }
-

@@ -26,7 +26,8 @@ function initFirebaseClient(): FirebaseApp {
     });
   }
 
-  return getApps().length ? getApp() : initializeApp(firebaseConfig);
+  const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+  return app;
 }
 
 export const firebaseApp: FirebaseApp = initFirebaseClient();

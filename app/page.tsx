@@ -1,123 +1,177 @@
-export default function Home() {
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Navbar } from "../components/Navbar";
+
+export default function HomePage() {
+  const router = useRouter();
+  const [trackId, setTrackId] = useState("");
+
+  const handleTrackSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (trackId.trim()) {
+      router.push(`/track/${trackId.trim()}`);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-[#1B2A4A] text-white flex items-center justify-center font-semibold">
-              P
-            </div>
-            <div>
-              <div className="text-lg font-semibold text-[#1B2A4A] leading-none">P-CRM</div>
-              <div className="text-xs text-slate-500">Smart grievance management</div>
-            </div>
-          </div>
-          <div className="hidden sm:flex items-center gap-3">
-            <a
-              href="/login"
-              className="text-sm font-medium text-slate-600 hover:text-[#1B2A4A] px-2"
-            >
-              Staff Login
-            </a>
-            <a
-              href="/submit"
-              className="inline-flex items-center justify-center rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8]"
-            >
-              Submit a Complaint
-            </a>
-            <a
-              href="/track"
-              className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              Track Complaint
-            </a>
-          </div>
-        </div>
-      </header>
+    <div
+      style={{
+        backgroundColor: "#FFFFFF",
+        minHeight: "100vh",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        color: "#1B2A4A",
+      }}
+    >
+      <Navbar />
 
-      <main>
-        <section className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-            <div>
-              <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#1B2A4A]">
-                Your Voice, Our Priority
-              </h1>
-              <p className="mt-4 text-base sm:text-lg text-slate-600">
-                Smart grievance management for Pune citizens
-              </p>
+      <main
+        style={{
+          width: "100%",
+          maxWidth: "960px",
+          margin: "0 auto",
+          padding: "0 24px",
+        }}
+      >
+        <section
+          style={{
+            backgroundColor: "#FFFFFF",
+            borderRadius: "12px",
+            border: "1px solid #E2E8F0",
+            padding: "48px",
+            marginTop: "32px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "32px",
+          }}
+        >
+          <div style={{ flex: "1 1 400px" }}>
+            <div
+              style={{
+                backgroundColor: "#EFF6FF",
+                color: "#2563EB",
+                fontSize: "12px",
+                padding: "4px 12px",
+                borderRadius: "20px",
+                display: "inline-block",
+                fontWeight: "bold",
+                marginBottom: "16px",
+              }}
+            >
+              ✦ AI-POWERED CITY MANAGEMENT
+            </div>
+            
+            <h1
+              style={{
+                fontSize: "36px",
+                fontWeight: "900",
+                color: "#1B2A4A",
+                margin: "0",
+                lineHeight: "1.2",
+              }}
+            >
+              Your Voice Matters.
+            </h1>
+            <h2
+              style={{
+                fontSize: "36px",
+                fontWeight: "bold",
+                color: "#2563EB",
+                margin: "0 0 16px 0",
+                lineHeight: "1.2",
+              }}
+            >
+              Help us improve your city.
+            </h2>
+            
+            <p
+              style={{
+                fontSize: "14px",
+                color: "#64748B",
+                maxWidth: "380px",
+                margin: "0",
+                lineHeight: "1.6",
+              }}
+            >
+              Submit concerns directly to city officials. Our AI-driven system ensures your
+              complaints are categorized and routed to the right department instantly for 3x faster
+              resolution.
+            </p>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <a
-                  href="/submit"
-                  className="h-11 sm:h-12 px-5 rounded-lg bg-[#2563EB] text-white text-base font-semibold inline-flex items-center justify-center hover:bg-[#1d4ed8]"
+            <div style={{ display: "flex", gap: "16px", marginTop: "32px", flexWrap: "wrap" }}>
+              <Link
+                href="/complaints/new"
+                style={{
+                  backgroundColor: "#2563EB",
+                  color: "#FFFFFF",
+                  height: "40px",
+                  padding: "0 16px",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "bold",
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                File a Complaint →
+              </Link>
+              
+              <form onSubmit={handleTrackSubmit} style={{ display: "flex" }}>
+                <input
+                  type="text"
+                  placeholder="Enter Case ID..."
+                  value={trackId}
+                  onChange={(e) => setTrackId(e.target.value)}
+                  style={{
+                    height: "40px",
+                    border: "1px solid #1B2A4A",
+                    borderRight: "none",
+                    borderRadius: "8px 0 0 8px",
+                    padding: "0 12px",
+                    fontSize: "14px",
+                    outline: "none"
+                  }}
+                />
+                <button
+                  type="submit"
+                  style={{
+                    backgroundColor: "#FFFFFF",
+                    color: "#1B2A4A",
+                    height: "40px",
+                    padding: "0 16px",
+                    borderRadius: "0 8px 8px 0",
+                    border: "1px solid #1B2A4A",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
                 >
-                  Submit a Complaint
-                </a>
-                <a
-                  href="/track"
-                  className="h-11 sm:h-12 px-5 rounded-lg border border-slate-200 bg-white text-slate-800 text-base font-semibold inline-flex items-center justify-center hover:bg-slate-50"
-                >
-                  Track Your Complaint
-                </a>
-              </div>
-
-              <div className="mt-8 rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
-                <div className="text-sm font-semibold text-[#1B2A4A]">How it works</div>
-                <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-                    <div className="text-xs font-semibold text-slate-700">Step 1</div>
-                    <div className="mt-1 text-sm font-semibold text-slate-900">Submit</div>
-                    <div className="mt-1 text-xs text-slate-600">Share details and ward.</div>
-                  </div>
-                  <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-                    <div className="text-xs font-semibold text-slate-700">Step 2</div>
-                    <div className="mt-1 text-sm font-semibold text-slate-900">AI Analyses</div>
-                    <div className="mt-1 text-xs text-slate-600">Classifies urgency and department.</div>
-                  </div>
-                  <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-                    <div className="text-xs font-semibold text-slate-700">Step 3</div>
-                    <div className="mt-1 text-sm font-semibold text-slate-900">Gets Resolved</div>
-                    <div className="mt-1 text-xs text-slate-600">Assigned and tracked to closure.</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="text-sm font-semibold text-[#1B2A4A]">City impact at a glance</div>
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="rounded-lg bg-[#F8FAFC] border border-slate-200 p-4">
-                  <div className="text-2xl font-bold text-[#1B2A4A]">20,000+</div>
-                  <div className="mt-1 text-xs text-slate-600">complaints resolved</div>
-                </div>
-                <div className="rounded-lg bg-[#F8FAFC] border border-slate-200 p-4">
-                  <div className="text-2xl font-bold text-[#1B2A4A]">72hr</div>
-                  <div className="mt-1 text-xs text-slate-600">average resolution</div>
-                </div>
-                <div className="rounded-lg bg-[#F8FAFC] border border-slate-200 p-4">
-                  <div className="text-2xl font-bold text-[#1B2A4A]">15</div>
-                  <div className="mt-1 text-xs text-slate-600">departments</div>
-                </div>
-              </div>
-
-              <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                Get instant tracking and real-time updates without visiting an office.
-              </div>
+                  Track My Ticket
+                </button>
+              </form>
             </div>
           </div>
+
+          <div
+            style={{
+              width: "280px",
+              height: "180px",
+              borderRadius: "12px",
+              backgroundImage: "url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=560')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
         </section>
       </main>
-
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-slate-600 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-          <div className="font-semibold text-[#1B2A4A]">P-CRM v1.0</div>
-          <div className="flex flex-wrap items-center gap-4 mt-2 sm:mt-0">
-            <a href="/login" className="hover:text-[#1B2A4A]">Staff Login</a>
-            <span className="hidden sm:inline">•</span>
-            <span>JSPM JSCOE Innovation Challenge 2026</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

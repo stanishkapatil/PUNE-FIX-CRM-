@@ -1,177 +1,216 @@
 "use client";
 
-import { useMemo, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-
 import { firebaseAuth, firebaseDb } from "../../lib/firebase/client";
-import type { UserRole } from "../../types";
+import { useAuth, UserRole } from "../../lib/useAuth";
+import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { toast } from "react-hot-toast";
 
-const LoginSchema = z.object({
-  email: z.string().trim().email("Enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-type LoginValues = z.infer<typeof LoginSchema>;
-
-function roleToPath(role: UserRole): string {
-  if (role === "mla") return "/mla-dashboard";
-  if (role === "admin") return "/admin";
-  // staff + supervisor default
-  return "/staff-dashboard";
-}
-
-async function fetchRole(uid: string): Promise<UserRole> {
-  const snap = await getDoc(doc(firebaseDb, "users", uid));
-  if (!snap.exists()) throw new Error("User profile not found");
-  const role = (snap.data() as any)?.role as UserRole | undefined;
-  if (!role || !["staff", "supervisor", "mla", "admin"].includes(role)) throw new Error("Invalid user role");
-  return role;
-}
-
-async function setSessionCookie(idToken: string): Promise<void> {
-  const res = await fetch("/api/v1/auth/session", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ idToken }),
-  });
-  const json = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(json?.error || "Failed to create session");
-}
-
-function LoginContent() {
+export default function LoginPage() {
   const router = useRouter();
-  const params = useSearchParams();
-  const nextParam = params.get("next");
+  const { user, role, loading } = useAuth();
+  
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [serverError, setServerError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!loading && user) {
+        // Redirection logic for existing users
+        if (role === "admin") router.replace("/admin");
+        else if (role === "mla") router.replace("/mla");
+        else router.replace("/dashboard");
+    }
+  }, [user, role, loading, router]);
 
-  const defaultValues = useMemo<LoginValues>(() => ({ email: "", password: "" }), []);
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !password) {
+        return toast.error("Please enter email and password");
+    }
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginValues>({
-    resolver: zodResolver(LoginSchema),
-    defaultValues,
-    mode: "onSubmit",
-  });
-
-  const onSubmit = async (values: LoginValues) => {
-    setServerError(null);
+    setIsSubmitting(true);
     try {
-      if (process.env.NODE_ENV !== "production") {
-        console.info("[auth] login attempt", { email: values.email });
-      }
-      const cred = await signInWithEmailAndPassword(firebaseAuth, values.email, values.password);
-      const idToken = await cred.user.getIdToken();
-      await setSessionCookie(idToken);
-      const role = await fetchRole(cred.user.uid);
+        const cred = await signInWithEmailAndPassword(firebaseAuth, email, password);
+        const userDoc = await getDoc(doc(firebaseDb, "users", cred.user.uid));
+        
+        let fetchedRole: UserRole = null;
+        if (userDoc.exists()) {
+            fetchedRole = userDoc.data().role as UserRole;
+        }
 
-      // If middleware passed a "next" route, prefer it when it matches the role area.
-      const destination = nextParam && nextParam.startsWith("/") ? nextParam : roleToPath(role);
-
-      router.replace(destination);
-    } catch (e: any) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("[auth] login failed", { code: e?.code, message: e?.message });
-      }
-      const msg =
-        e?.code === "auth/invalid-credential"
-          ? "Invalid email or password."
-          : typeof e?.message === "string"
-            ? e.message
-            : "Login failed. Please try again.";
-      setServerError(msg);
+        if (fetchedRole === "admin") router.push("/admin");
+        else if (fetchedRole === "mla") router.push("/mla");
+        else router.push("/dashboard");
+        
+    } catch (error: any) {
+        toast.error("Invalid email or password");
+        setIsSubmitting(false);
     }
   };
 
+  const handleForgot = (e: React.MouseEvent) => {
+      e.preventDefault();
+      alert("Please contact your system administrator to reset your password.");
+  }
+
+  if (loading) {
+     return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}><LoadingSpinner color="#2563EB" size={32} /></div>;
+  }
+
+  // Prevent flash of login screen if already authed
+  if (user) return null; 
+
   return (
-    <div className="min-h-screen bg-slate-50 grid grid-cols-1 md:grid-cols-[360px_1fr]">
-      <aside className="hidden md:flex flex-col justify-between bg-[#1B2A4A] text-white p-10">
-        <div>
-          <div className="text-2xl font-semibold tracking-tight">P-CRM</div>
-          <div className="mt-2 text-sm text-white/80">
-            Smart Public Governance CRM for municipal grievance management.
+    <div
+      style={{
+        backgroundColor: "#F8FAFC",
+        minHeight: "100vh",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "420px",
+          backgroundColor: "#FFFFFF",
+          borderRadius: "12px",
+          border: "1px solid #E2E8F0",
+          padding: "40px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+        }}
+      >
+        {/* LOGO SECTION */}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+          <div
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              backgroundColor: "#1B2A4A",
+              color: "#FFFFFF",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "16px",
+            }}
+          >
+            🏛
           </div>
-          <div className="mt-8 text-xs text-white/70 leading-relaxed">
-            Staff accounts are provisioned by administrators. If you need access, contact your supervisor.
+          <div>
+            <div style={{ fontSize: "22px", fontWeight: "bold", color: "#1B2A4A", lineHeight: "1" }}>
+              P-CRM
+            </div>
+            <div style={{ fontSize: "13px", color: "#94A3B8", marginTop: "2px" }}>
+              Smart Public Governance
+            </div>
           </div>
         </div>
-        <div className="text-xs text-white/60">JSPM JSCOE Innovation Challenge 2026</div>
-      </aside>
 
-      <main className="flex items-center justify-center p-6">
-        <div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <div className="md:hidden mb-6">
-            <div className="text-xl font-semibold text-[#1B2A4A]">P-CRM</div>
-            <div className="text-sm text-slate-600">Staff Login</div>
+        <div style={{ borderBottom: "1px solid #E2E8F0", marginBottom: "24px" }} />
+
+        {/* HEADING */}
+        <h1 style={{ margin: "0 0 4px 0", fontSize: "20px", fontWeight: "bold", color: "#1B2A4A" }}>
+          Welcome back
+        </h1>
+        <p style={{ margin: "0 0 24px 0", fontSize: "13px", color: "#94A3B8" }}>
+          Sign in to your account
+        </p>
+
+        {/* FORM */}
+        <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <label style={{ fontSize: "14px", color: "#1B2A4A" }}>Email Address</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="officer@pune.gov.in"
+              style={{
+                height: "44px",
+                border: "1px solid #E2E8F0",
+                borderRadius: "8px",
+                padding: "0 12px",
+                fontSize: "14px",
+                fontFamily: "inherit",
+              }}
+            />
           </div>
 
-          <div className="hidden md:block mb-6">
-            <h1 className="text-xl font-semibold text-slate-900">Staff Login</h1>
-            <p className="text-sm text-slate-600 mt-1">Sign in with your municipal staff account.</p>
-          </div>
-
-          {serverError ? (
-            <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {serverError}
-            </div>
-          ) : null}
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Email</label>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <label style={{ fontSize: "14px", color: "#1B2A4A" }}>Password</label>
+            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
               <input
-                type="email"
-                autoComplete="email"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB]"
-                placeholder="name@municipality.gov.in"
-                {...register("email")}
-              />
-              {errors.email ? <p className="mt-1 text-xs text-red-600">{errors.email.message}</p> : null}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Password</label>
-              <input
-                type="password"
-                autoComplete="current-password"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB]"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                {...register("password")}
+                style={{
+                  width: "100%",
+                  height: "44px",
+                  border: "1px solid #E2E8F0",
+                  borderRadius: "8px",
+                  padding: "0 40px 0 12px",
+                  fontSize: "14px",
+                  fontFamily: "inherit",
+                }}
               />
-              {errors.password ? <p className="mt-1 text-xs text-red-600">{errors.password.message}</p> : null}
+              <span
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: "absolute",
+                  right: "12px",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  color: "#94A3B8",
+                }}
+              >
+                {showPassword ? "🕵️" : "👁"}
+              </span>
             </div>
+          </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full rounded-lg bg-[#2563EB] px-4 py-2.5 text-white font-medium hover:bg-[#1d4ed8] disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? "Signing in..." : "Sign in"}
-            </button>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <a href="#" onClick={handleForgot} style={{ color: "#2563EB", fontSize: "12px", textDecoration: "none" }}>
+              Forgot password?
+            </a>
+          </div>
 
-            <div className="text-xs text-slate-500">
-              No registration is available. Accounts are created manually by the admin team.
-            </div>
-          </form>
-        </div>
-      </main>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            style={{
+              width: "100%",
+              height: "44px",
+              backgroundColor: isSubmitting ? "#94A3B8" : "#2563EB",
+              color: "#FFFFFF",
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: "bold",
+              cursor: isSubmitting ? "not-allowed" : "pointer",
+              marginTop: "8px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center"
+            }}
+          >
+            {isSubmitting ? <LoadingSpinner size={16} /> : "Sign In"}
+          </button>
+        </form>
+
+        <p style={{ margin: "16px 0 0 0", fontSize: "12px", color: "#94A3B8", textAlign: "center" }}>
+          Access restricted to authorized personnel only.
+        </p>
+      </div>
     </div>
   );
 }
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={null}>
-      <LoginContent />
-    </Suspense>
-  );
-}
-
