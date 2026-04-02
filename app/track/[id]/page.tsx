@@ -6,8 +6,8 @@ import { toast } from "react-hot-toast";
 import { UrgencyBadge } from "../../../components/UrgencyBadge";
 import { LoadingSpinner } from "../../../components/LoadingSpinner";
 
-export default function TrackCasePage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function TrackCasePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
   
   const [caseData, setCaseData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -146,10 +146,17 @@ export default function TrackCasePage({ params }: { params: { id: string } }) {
 
         {/* TIMELINE */}
         <div style={{ padding: "24px", backgroundColor: "#FFFFFF" }}>
-          {caseData.timeline?.map((step: any, index: number) => {
-            const isLast = index === caseData.timeline.length - 1;
-            const isCompleted = isResolved || !isLast;
-            const isCurrent = !isResolved && isLast;
+          {[
+            { title: "Complaint submitted" },
+            { title: "AI Classification" },
+            { title: "Assigned to department" },
+            { title: "Investigation in progress" },
+            { title: "Resolution & Fix" },
+          ].map((defaultStep: any, index: number) => {
+            const step = caseData.timeline && index < caseData.timeline.length ? caseData.timeline[index] : null;
+            const isLast = index === 4;
+            const isCompleted = isResolved || (step !== null && index < caseData.timeline.length - 1);
+            const isCurrent = !isResolved && step !== null && index === caseData.timeline.length - 1;
 
             return (
               <div key={index} style={{ display: "flex", gap: "16px" }}>
@@ -165,9 +172,9 @@ export default function TrackCasePage({ params }: { params: { id: string } }) {
                   {!isLast && <div style={{ width: "2px", height: "32px", backgroundColor: isCompleted ? "#16A34A" : "#E2E8F0", margin: "4px 0" }}></div>}
                 </div>
                 <div style={{ paddingBottom: isLast ? "0" : "16px" }}>
-                  <div style={{ fontSize: "14px", fontWeight: "bold", color: "#1B2A4A" }}>{step.title}</div>
+                  <div style={{ fontSize: "14px", fontWeight: "bold", color: step ? "#1B2A4A" : "#94A3B8" }}>{step ? step.title : defaultStep.title}</div>
                   <div style={{ fontSize: "12px", color: "#94A3B8" }}>
-                     {new Date(step.timestamp).toLocaleDateString()} {new Date(step.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                     {step ? `${new Date(step.timestamp).toLocaleDateString()} ${new Date(step.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : "Pending"}
                   </div>
                 </div>
               </div>
@@ -205,6 +212,7 @@ export default function TrackCasePage({ params }: { params: { id: string } }) {
           <button
             disabled={!isResolved}
             onClick={() => setIsModalOpen(true)}
+            aria-label="Rate this experience"
             style={{
               width: "100%",
               height: "44px",

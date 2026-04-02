@@ -154,7 +154,7 @@ export default function DashboardPage() {
                 🤖 AI Situation Brief
                 {isRefreshingBrief && <LoadingSpinner size={14} color="#2563EB" />}
               </div>
-              <a href="#" onClick={refreshBrief} style={{ color: "#2563EB", fontSize: "12px", textDecoration: "none" }}>Refresh ↺</a>
+              <a href="#" aria-label="Refresh AI Brief" onClick={refreshBrief} style={{ color: "#2563EB", fontSize: "12px", textDecoration: "none" }}>Refresh ↺</a>
             </div>
             <div style={{ fontSize: "11px", color: "#94A3B8", marginBottom: "16px" }}>Generated at {briefTime}</div>
 
@@ -261,7 +261,7 @@ export default function DashboardPage() {
                   {cases.length > 0 ? cases.map((row, idx) => (
                     <tr 
                         key={idx} 
-                        onClick={() => router.push(`/track/${row.id}`)}
+                        onClick={() => router.push(`/cases/${row.id}`)}
                         style={{ borderBottom: "1px solid #E2E8F0", cursor: "pointer" }}>
                       <td style={{ padding: "16px 20px", fontSize: "14px", color: "#1B2A4A", fontWeight: "500" }}>{row.id}</td>
                       <td style={{ padding: "16px 20px", fontSize: "14px", color: "#1B2A4A" }}>{row.description?.substring(0,40)}{row.description?.length > 40 ? '...' : ''}</td>
@@ -273,7 +273,7 @@ export default function DashboardPage() {
                       <td style={{ padding: "16px 20px", fontSize: "14px", color: "#64748B" }}>{row.status?.replace('_', ' ')}</td>
                       <td style={{ padding: "16px 20px" }}>
                         <button 
-                            onClick={(e) => { e.stopPropagation(); router.push(`/track/${row.id}`) }}
+                            onClick={(e) => { e.stopPropagation(); router.push(`/cases/${row.id}`) }}
                             style={{ backgroundColor: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: "6px", padding: "6px 12px", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>
                             View
                         </button>

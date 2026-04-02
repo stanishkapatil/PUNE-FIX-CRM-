@@ -23,8 +23,21 @@ export async function POST(req: Request) {
     Complaint: "${complaintText}"`;
 
     const result = await model.generateContent(prompt);
-    const textResponse = result.response.text();
-    const parsed = JSON.parse(textResponse);
+    let parsed;
+    try {
+        const textResponse = result.response.text();
+        parsed = JSON.parse(textResponse);
+    } catch(e) {
+        parsed = {
+            category: "General",
+            urgency_score: 50,
+            sentiment: "Neutral",
+            department: "General Administration",
+            suggested_response: "Your complaint has been received and is under review.",
+            confidence: 0.5,
+            vulnerable_flag: false
+        };
+    }
 
     return NextResponse.json(parsed);
 

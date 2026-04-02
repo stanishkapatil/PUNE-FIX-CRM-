@@ -7,7 +7,7 @@ import { signOut } from "firebase/auth";
 import { firebaseAuth } from "../lib/firebase/client";
 import { useAuth } from "../lib/useAuth";
 
-export function Sidebar() {
+export function Sidebar({ activePage }: { activePage?: string } = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, role } = useAuth();
@@ -22,12 +22,17 @@ export function Sidebar() {
   };
 
   const navItems = [
-    { name: "Dashboard", href: "/dashboard", icon: "🏠" },
-    { name: "Cases", href: "/cases", icon: "📋" },
-    { name: "Alerts", href: "/alerts", icon: "🔔" },
-    { name: "Reports", href: "/reports", icon: "📊" },
-    { name: "Settings", href: "/settings", icon: "⚙️" },
+    { icon: '🏠', label: 'Dashboard', path: '/dashboard', key: 'dashboard' },
+    { icon: '📋', label: 'Cases', path: '/cases', key: 'cases' },
+    { icon: '🔔', label: 'Alerts', path: '/alerts', key: 'alerts' },
+    { icon: '📊', label: 'Reports', path: '/reports', key: 'reports' },
+    { icon: '⚙️', label: 'Settings', path: '/settings', key: 'settings' },
   ];
+
+  const isActive = (key: string, path: string) => {
+    if (activePage) return activePage === key;
+    return pathname === path || pathname.startsWith(path + "/");
+  };
 
   return (
     <aside
@@ -48,27 +53,24 @@ export function Sidebar() {
 
       <nav style={{ flex: 1, padding: "0 16px", display: "flex", flexDirection: "column", gap: "4px" }}>
         {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          const active = isActive(item.key, item.path);
           return (
-            <Link
-              key={item.href}
-              href={item.href}
+            <div
+              key={item.key}
+              onClick={() => router.push(item.path)}
               style={{
-                height: "48px",
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                padding: "0 16px",
-                backgroundColor: isActive ? "#2563EB" : "transparent",
-                borderRadius: "8px",
-                color: "#FFFFFF",
-                fontSize: "14px",
-                textDecoration: "none",
-                cursor: "pointer",
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '12px 16px', borderRadius: 8, cursor: 'pointer',
+                marginBottom: 4,
+                background: active ? '#2563EB' : 'transparent',
+                color: 'white',
+                fontWeight: active ? 600 : 400,
+                fontSize: 14,
               }}
             >
-              <span>{item.icon}</span> {item.name}
-            </Link>
+              <span style={{ fontSize: 18 }}>{item.icon}</span>
+              <span>{item.label}</span>
+            </div>
           );
         })}
       </nav>

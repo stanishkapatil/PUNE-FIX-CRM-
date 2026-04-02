@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { firebaseAuth } from "../../lib/firebase/client";
@@ -12,8 +13,15 @@ import { toast } from "react-hot-toast";
 export default function MLADashboardPage() {
   const router = useRouter();
   const { user, role, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState("Map View");
+  const [activeTab, setActiveTab] = useState("Resolution Rate");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      toast.success(`Filtered view for: ${searchQuery}`);
+    }
+  };
 
   useEffect(() => {
     if (!loading && (!user || (role !== "mla" && role !== "admin"))) {
@@ -63,14 +71,14 @@ export default function MLADashboardPage() {
 
         <nav style={{ flex: 1, padding: "0 16px", display: "flex", flexDirection: "column", gap: "4px" }}>
           {[
-            { name: "Constituency Overview", icon: "🗺️", active: true },
-            { name: "My Wards", icon: "📍", active: false },
-            { name: "Department Metrics", icon: "📊", active: false },
-            { name: "SLA Breaches", icon: "⚠️", active: false }
+            { name: "Constituency Overview", icon: "🗺️", href: "/mla", active: true },
+            { name: "My Wards", icon: "📍", href: "#", active: false },
+            { name: "Department Metrics", icon: "📊", href: "#", active: false },
+            { name: "SLA Breaches", icon: "⚠️", href: "#", active: false }
           ].map((item, idx) => (
-            <div key={idx} style={{ height: "48px", display: "flex", alignItems: "center", gap: "12px", padding: "0 16px", backgroundColor: item.active ? "#2563EB" : "transparent", borderRadius: "8px", color: "#FFFFFF", fontSize: "14px", cursor: "pointer" }}>
+            <Link key={idx} href={item.href} style={{ height: "48px", display: "flex", alignItems: "center", gap: "12px", padding: "0 16px", backgroundColor: item.active ? "#2563EB" : "transparent", borderRadius: "8px", color: "#FFFFFF", fontSize: "14px", cursor: "pointer", textDecoration: "none" }}>
               <span>{item.icon}</span> {item.name}
-            </div>
+            </Link>
           ))}
         </nav>
 
@@ -96,10 +104,21 @@ export default function MLADashboardPage() {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, height: "100vh", overflowY: "auto" }}>
         {/* TOP BAR */}
         <header style={{ height: "64px", backgroundColor: "#FFFFFF", borderBottom: "1px solid #E2E8F0", padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-          <div style={{ fontSize: "18px", fontWeight: "bold", color: "#1B2A4A" }}>
-            Constituency Overview — Kothrud
+          <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+            <div style={{ fontSize: "18px", fontWeight: "bold", color: "#1B2A4A" }}>
+              Constituency Overview — Kothrud
+            </div>
+            <input 
+              type="text" 
+              aria-label="Search cases or wards"
+              placeholder="Search cases or wards (Press Enter)..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch}
+              style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #E2E8F0", fontSize: "13px", width: "240px", outline: "none" }}
+            />
           </div>
-          <button onClick={downloadReport} disabled={isDownloading} style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#0D9488", color: "#FFFFFF", border: "none", borderRadius: "6px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: isDownloading ? "not-allowed" : "pointer" }}>
+          <button aria-label="Download Report" onClick={downloadReport} disabled={isDownloading} style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#0D9488", color: "#FFFFFF", border: "none", borderRadius: "6px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: isDownloading ? "not-allowed" : "pointer" }}>
             {isDownloading ? <LoadingSpinner size={14} /> : "Download Report ⬇"}
           </button>
         </header>
@@ -130,7 +149,7 @@ export default function MLADashboardPage() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <div style={{ fontSize: "16px", fontWeight: "bold", color: "#1B2A4A" }}>Issue Distribution</div>
                 <div style={{ display: "flex", backgroundColor: "#F8FAFC", borderRadius: "8px", padding: "4px" }}>
-                  {["Map View", "Chart View"].map(tab => (
+                  {["Resolution Rate", "Complaint Volume"].map(tab => (
                       <div 
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -141,17 +160,19 @@ export default function MLADashboardPage() {
                 </div>
               </div>
 
-              <div style={{ height: "300px", backgroundColor: "#F8FAFC", borderRadius: "8px", border: "1px dashed #cbd5e1", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {activeTab === "Map View" ? (
-                    <div style={{ textAlign: "center", color: "#64748B" }}>
-                        <span style={{ fontSize: "32px", display: "block", marginBottom: "8px" }}>🗺️</span>
-                        Constituency map rendering<br/>
-                        <span style={{ fontSize: "12px" }}>Showing 4 major hot-spots in Ward 7 & 12</span>
+              <div style={{ height: "300px", backgroundColor: "#F8FAFC", borderRadius: "8px", border: "1px dashed #cbd5e1", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                {activeTab === "Resolution Rate" ? (
+                    <div style={{ textAlign: "center", color: "#64748B", width: "100%", height: "100%", backgroundImage: "url('https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800')", backgroundSize: "cover", backgroundPosition: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <div style={{ backgroundColor: "rgba(255,255,255,0.9)", padding: "16px", borderRadius: "8px", margin: "auto" }}>
+                            <span style={{ fontSize: "32px", display: "block", marginBottom: "8px" }}>🗺️</span>
+                            Resolution Heatmap<br/>
+                            <span style={{ fontSize: "12px" }}>Showing 4 major hot-spots in Ward 7 & 12</span>
+                        </div>
                     </div>
                 ) : (
                     <div style={{ textAlign: "center", color: "#64748B" }}>
                         <span style={{ fontSize: "32px", display: "block", marginBottom: "8px" }}>📊</span>
-                        Chart rendering<br/>
+                        Volume metrics overlay<br/>
                         <span style={{ fontSize: "12px" }}>Water Supply represents 40% of issues</span>
                     </div>
                 )}
@@ -170,6 +191,7 @@ export default function MLADashboardPage() {
                     { dept: "Water Supply", sla: "68%", color: "#DC2626", bar: 68 },
                     { dept: "Roads & Traffic", sla: "82%", color: "#D97706", bar: 82 },
                     { dept: "Sanitation", sla: "94%", color: "#16A34A", bar: 94 },
+                    { dept: "Tax & Finance", sla: "90%", color: "#16A34A", bar: 90 },
                     { dept: "Electricity", sla: "91%", color: "#16A34A", bar: 91 },
                 ].map((row, idx) => (
                     <div key={idx} style={{ marginBottom: idx === 3 ? 0 : "20px" }}>

@@ -4,7 +4,7 @@ service cloud.firestore {
     match /cases/{caseId} {
       allow read: if true;
       allow create: if true;
-      allow update: if request.auth != null;
+      allow update: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['staff', 'supervisor', 'admin'];
       allow delete: if false;
     }
     match /users/{userId} {

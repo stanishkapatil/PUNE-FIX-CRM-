@@ -37,7 +37,7 @@ function maskPhone(phone: string | null | undefined): string {
   const digits = p.replace(/[^\d]/g, "");
   const last10 = digits.length >= 10 ? digits.slice(-10) : digits;
   if (last10.length < 10) return phone;
-  return `+91 ${last10.slice(0, 5)}******`;
+  return `+91 ${last10.slice(0, 5)}*****`;
 }
 
 async function authedPatch(caseId: string, body: unknown) {

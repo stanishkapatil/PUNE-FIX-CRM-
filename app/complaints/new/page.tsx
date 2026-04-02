@@ -180,10 +180,11 @@ export default function FileComplaintPage() {
         >
           {/* Describe Issue */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <label style={{ fontSize: "14px", fontWeight: "normal", color: "#1B2A4A" }}>
+            <label htmlFor="description" style={{ fontSize: "14px", fontWeight: "normal", color: "#1B2A4A" }}>
               Describe your issue *
             </label>
             <textarea
+              id="description"
               placeholder="Describe the problem in detail..."
               value={description}
               onChange={e => setDescription(e.target.value)}
@@ -192,7 +193,7 @@ export default function FileComplaintPage() {
                 border: errors.description ? "1px solid #DC2626" : "1px solid #E2E8F0",
                 borderRadius: "8px",
                 padding: "12px",
-                fontSize: "14px",
+                fontSize: "16px",
                 fontFamily: "inherit",
                 resize: "vertical",
               }}
@@ -202,10 +203,11 @@ export default function FileComplaintPage() {
 
           {/* Category */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <label style={{ fontSize: "14px", fontWeight: "normal", color: "#1B2A4A" }}>
+            <label htmlFor="category" style={{ fontSize: "14px", fontWeight: "normal", color: "#1B2A4A" }}>
               Category
             </label>
             <select
+              id="category"
               value={category}
               onChange={e => setCategory(e.target.value)}
               style={{
@@ -213,7 +215,7 @@ export default function FileComplaintPage() {
                 border: "1px solid #E2E8F0",
                 borderRadius: "8px",
                 padding: "0 12px",
-                fontSize: "14px",
+                fontSize: "16px",
                 fontFamily: "inherit",
                 backgroundColor: "#fff",
               }}
@@ -229,8 +231,9 @@ export default function FileComplaintPage() {
 
           {/* Ward */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <label style={{ fontSize: "14px", fontWeight: "normal", color: "#1B2A4A" }}>Ward</label>
+            <label htmlFor="ward" style={{ fontSize: "14px", fontWeight: "normal", color: "#1B2A4A" }}>Ward</label>
             <select
+              id="ward"
               value={ward}
               onChange={e => setWard(e.target.value)}
               style={{
@@ -238,7 +241,7 @@ export default function FileComplaintPage() {
                 border: "1px solid #E2E8F0",
                 borderRadius: "8px",
                 padding: "0 12px",
-                fontSize: "14px",
+                fontSize: "16px",
                 fontFamily: "inherit",
                 backgroundColor: "#fff",
               }}
@@ -253,7 +256,7 @@ export default function FileComplaintPage() {
 
           {/* Phone Number */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <label style={{ fontSize: "14px", fontWeight: "normal", color: "#1B2A4A" }}>
+            <label htmlFor="phone" style={{ fontSize: "14px", fontWeight: "normal", color: "#1B2A4A" }}>
               Phone Number *
             </label>
             <div
@@ -271,7 +274,7 @@ export default function FileComplaintPage() {
                 style={{
                   padding: "0 12px",
                   color: "#64748B",
-                  fontSize: "14px",
+                  fontSize: "16px",
                   backgroundColor: "#F8FAFC",
                   height: "100%",
                   display: "flex",
@@ -282,6 +285,7 @@ export default function FileComplaintPage() {
                 +91
               </div>
               <input
+                id="phone"
                 type="tel"
                 placeholder="XXXXX XXXXX"
                 value={phone}
@@ -292,7 +296,7 @@ export default function FileComplaintPage() {
                   height: "100%",
                   border: "none",
                   padding: "0 12px",
-                  fontSize: "14px",
+                  fontSize: "16px",
                   fontFamily: "inherit",
                   outline: "none",
                 }}
