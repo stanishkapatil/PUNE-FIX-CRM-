@@ -3,21 +3,21 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { collection, query, where, orderBy, limit, onSnapshot, getDocs } from "firebase/firestore";
-import { useAuth } from "../../lib/useAuth";
-import { Sidebar } from "../../components/Sidebar";
-import { UrgencyBadge } from "../../components/UrgencyBadge";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
-import { firebaseDb } from "../../lib/firebase/client";
+import { useAuth } from "@/lib/useAuth";
+import { Sidebar } from "@/components/Sidebar";
+import { UrgencyBadge } from "@/components/UrgencyBadge";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { db } from "@/lib/firebase";
 import { toast } from "react-hot-toast";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, role, loading } = useAuth();
-  
+
   const [briefText, setBriefText] = useState("3 critical water supply cases in Ward 7 require immediate attention — cascade pattern detected. Officer Kumar is approaching SLA breach on Case #1038. Prioritize water cases before electrical queue today.");
   const [briefTime, setBriefTime] = useState("8:30 AM");
   const [isRefreshingBrief, setIsRefreshingBrief] = useState(false);
-  
+
   const [cases, setCases] = useState<any[]>([]);
   const [cascadeAlert, setCascadeAlert] = useState<any | null>(null);
 
@@ -34,7 +34,7 @@ export default function DashboardPage() {
   // Real-time cascade alert listener (simplified to avoid composite index)
   useEffect(() => {
     if (!user) return;
-    const alertsRef = collection(firebaseDb, "alerts");
+    const alertsRef = collection(db, "alerts");
     const q = query(
       alertsRef,
       where("type", "==", "cascade"),
@@ -60,62 +60,62 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user && (role === "admin" || role === "staff" || role === "supervisor")) {
-        const fetchDashboardData = async () => {
-             try {
-                const { collection: col, getDocs: gd, query: q2, orderBy: ob, limit: lim } = await import("firebase/firestore");
-                const { firebaseDb: fdb } = await import("../../lib/firebase/client");
-                
-                const q = q2(col(fdb, "cases"), ob("createdAt", "desc"), lim(50));
-                const snap = await gd(q);
-                const loaded = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }));
+      const fetchDashboardData = async () => {
+        try {
+          const { collection: col, getDocs: gd, query: q2, orderBy: ob, limit: lim } = await import("firebase/firestore");
+          const { db: fdb } = await import("@/lib/firebase");
 
-                const tableCases = [...loaded].sort((a,b) => (b.urgencyScore || 0) - (a.urgencyScore || 0)).slice(0, 5);
-                setCases(tableCases);
+          const q = q2(col(fdb, "cases"), ob("createdAt", "desc"), lim(50));
+          const snap = await gd(q);
+          const loaded = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }));
 
-                // Fallback cascade detection from cases if alerts collection is empty
-                if (!cascadeAlert) {
-                  const cascadeMatches = loaded.filter(c => c.category === "Water Supply" && c.ward === "Ward 7" && c.status !== "resolved" && c.status !== "closed");
-                  if (cascadeMatches.length >= 3) {
-                    setCascadeAlert({
-                      category: "Water Supply",
-                      ward: "Ward 7",
-                      caseCount: cascadeMatches.length,
-                      message: `Water Supply · Ward 7 · ${cascadeMatches.length} complaints detected`,
-                    });
-                  }
-                }
-             } catch (e) {
-                console.error("Dashboard fetch error:", e);
-             }
-        };
-        fetchDashboardData();
+          const tableCases = [...loaded].sort((a, b) => (b.urgencyScore || 0) - (a.urgencyScore || 0)).slice(0, 5);
+          setCases(tableCases);
+
+          // Fallback cascade detection from cases if alerts collection is empty
+          if (!cascadeAlert) {
+            const cascadeMatches = loaded.filter(c => c.category === "Water Supply" && c.ward === "Ward 7" && c.status !== "resolved" && c.status !== "closed");
+            if (cascadeMatches.length >= 3) {
+              setCascadeAlert({
+                category: "Water Supply",
+                ward: "Ward 7",
+                caseCount: cascadeMatches.length,
+                message: `Water Supply · Ward 7 · ${cascadeMatches.length} complaints detected`,
+              });
+            }
+          }
+        } catch (e) {
+          console.error("Dashboard fetch error:", e);
+        }
+      };
+      fetchDashboardData();
     }
   }, [user, role, loading]);
 
   const refreshBrief = async (e: React.MouseEvent) => {
-      e.preventDefault();
-      setIsRefreshingBrief(true);
-      try {
-          const res = await fetch("/api/ai/brief");
-          const data = await res.json();
-          if (data.brief) {
-              setBriefText(data.brief);
-              setBriefTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-              toast.success("AI Brief updated");
-          }
-      } catch (err) {
-          toast.error("Failed to refresh brief");
-      } finally {
-          setIsRefreshingBrief(false);
+    e.preventDefault();
+    setIsRefreshingBrief(true);
+    try {
+      const res = await fetch("/api/ai/brief");
+      const data = await res.json();
+      if (data.brief) {
+        setBriefText(data.brief);
+        setBriefTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        toast.success("AI Brief updated");
       }
+    } catch (err) {
+      toast.error("Failed to refresh brief");
+    } finally {
+      setIsRefreshingBrief(false);
+    }
   };
 
   const handleEscalate = async () => {
-      toast.success("Escalated to Supervisor successfully!");
+    toast.success("Escalated to Supervisor successfully!");
   }
 
   if (loading || !user) {
-     return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}><LoadingSpinner color="#2563EB" size={32} /></div>;
+    return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}><LoadingSpinner color="#2563EB" size={32} /></div>;
   }
 
   return (
@@ -149,12 +149,12 @@ export default function DashboardPage() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "20px" }}>
             <div style={{ position: "relative", cursor: "pointer" }}>
-              🔔
+
               <div style={{ position: "absolute", top: -2, right: -4, width: 8, height: 8, backgroundColor: "#DC2626", borderRadius: "50%", border: "1px solid #FFFFFF" }} />
             </div>
-            <span style={{ cursor: "pointer" }}>⚙️</span>
+            <span style={{ cursor: "pointer" }}></span>
             <div
-                style={{
+              style={{
                 width: "32px",
                 height: "32px",
                 borderRadius: "50%",
@@ -163,16 +163,16 @@ export default function DashboardPage() {
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: "16px",
-                }}
+              }}
             >
-                👤
+
             </div>
           </div>
         </header>
 
         {/* MAIN DASHBOARD CONTENT */}
         <main style={{ padding: "32px", flex: 1 }}>
-          
+
           {/* AI SITUATION BRIEF CARD */}
           <div
             style={{
@@ -275,7 +275,7 @@ export default function DashboardPage() {
               <div style={{ fontSize: "16px", fontWeight: "bold", color: "#1B2A4A" }}>AI Priority Queue</div>
               <div style={{ fontSize: "12px", color: "#94A3B8", marginTop: "4px" }}>Sorted by urgency score</div>
             </div>
-            
+
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
                 <thead>
@@ -291,23 +291,23 @@ export default function DashboardPage() {
                 </thead>
                 <tbody>
                   {cases.length > 0 ? cases.map((row, idx) => (
-                    <tr 
-                        key={idx} 
-                        onClick={() => router.push(`/cases/${row.id}`)}
-                        style={{ borderBottom: "1px solid #E2E8F0", cursor: "pointer" }}>
+                    <tr
+                      key={idx}
+                      onClick={() => router.push(`/cases/${row.id}`)}
+                      style={{ borderBottom: "1px solid #E2E8F0", cursor: "pointer" }}>
                       <td style={{ padding: "16px 20px", fontSize: "14px", color: "#1B2A4A", fontWeight: "500" }}>{row.id}</td>
-                      <td style={{ padding: "16px 20px", fontSize: "14px", color: "#1B2A4A" }}>{row.description?.substring(0,40)}{row.description?.length > 40 ? '...' : ''}</td>
+                      <td style={{ padding: "16px 20px", fontSize: "14px", color: "#1B2A4A" }}>{row.description?.substring(0, 40)}{row.description?.length > 40 ? '...' : ''}</td>
                       <td style={{ padding: "16px 20px", fontSize: "14px", color: "#64748B" }}>{row.ward}</td>
                       <td style={{ padding: "16px 20px", fontSize: "14px", color: "#64748B" }}>{row.category}</td>
                       <td style={{ padding: "16px 20px" }}>
-                          <UrgencyBadge urgency={row.urgencyScore >= 80 ? "CRITICAL" : row.urgencyScore >= 60 ? "HIGH" : row.urgencyScore >= 30 ? "MEDIUM" : "LOW"} />
+                        <UrgencyBadge urgency={row.urgencyScore >= 80 ? "CRITICAL" : row.urgencyScore >= 60 ? "HIGH" : row.urgencyScore >= 30 ? "MEDIUM" : "LOW"} />
                       </td>
                       <td style={{ padding: "16px 20px", fontSize: "14px", color: "#64748B" }}>{row.status?.replace('_', ' ')}</td>
                       <td style={{ padding: "16px 20px" }}>
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); router.push(`/cases/${row.id}`) }}
-                            style={{ backgroundColor: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: "6px", padding: "6px 12px", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>
-                            View
+                        <button
+                          onClick={(e) => { e.stopPropagation(); router.push(`/cases/${row.id}`) }}
+                          style={{ backgroundColor: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: "6px", padding: "6px 12px", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>
+                          View
                         </button>
                       </td>
                     </tr>

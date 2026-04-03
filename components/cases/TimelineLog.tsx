@@ -11,7 +11,7 @@ import {
   type QueryDocumentSnapshot,
 } from "firebase/firestore";
 
-import { firebaseAuth, firebaseDb } from "../../lib/firebase/client";
+import { auth, db } from "@/lib/firebase";
 
 type Entry = {
   id: string;
@@ -48,7 +48,7 @@ function docToEntry(d: QueryDocumentSnapshot<DocumentData>): Entry {
 }
 
 async function authedPatch(caseId: string, body: unknown) {
-  const user = firebaseAuth.currentUser;
+  const user = auth.currentUser;
   if (!user) throw new Error("Not authenticated");
   const token = await user.getIdToken();
   const res = await fetch(`/api/v1/cases/${caseId}`, {
@@ -70,7 +70,7 @@ export function TimelineLog({ caseId }: { caseId: string }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const q = query(collection(firebaseDb, "cases", caseId, "timeline"), orderBy("created_at", "desc"));
+    const q = query(collection(db, "cases", caseId, "timeline"), orderBy("created_at", "desc"));
     const unsub = onSnapshot(
       q,
       { includeMetadataChanges: true },

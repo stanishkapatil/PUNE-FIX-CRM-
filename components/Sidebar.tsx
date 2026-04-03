@@ -4,8 +4,8 @@ import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
-import { firebaseAuth } from "../lib/firebase/client";
-import { useAuth } from "../lib/useAuth";
+import { auth } from "@/lib/firebase";
+import { useAuth } from "@/lib/useAuth";
 
 export function Sidebar({ activePage }: { activePage?: string } = {}) {
   const pathname = usePathname();
@@ -15,7 +15,7 @@ export function Sidebar({ activePage }: { activePage?: string } = {}) {
   const handleLogout = async () => {
     try {
       await fetch("/api/v1/auth/session", { method: "DELETE" });
-      await signOut(firebaseAuth);
+      await signOut(auth);
       router.push("/login");
     } catch (e) {
       console.error("Failed to sign out", e);

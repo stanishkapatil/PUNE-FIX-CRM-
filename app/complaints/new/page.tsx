@@ -4,7 +4,7 @@ import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { LoadingSpinner } from "../../../components/LoadingSpinner";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const SecurityCheckUI = ({ step }: { step: number }) => (
   <div style={{

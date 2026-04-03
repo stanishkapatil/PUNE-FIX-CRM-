@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
-import { UrgencyBadge } from "../../../components/UrgencyBadge";
-import { LoadingSpinner } from "../../../components/LoadingSpinner";
+import { UrgencyBadge } from "@/components/UrgencyBadge";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 export default function TrackCasePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);

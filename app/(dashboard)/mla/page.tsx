@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { signOut } from "firebase/auth";
-import { firebaseAuth } from "../../lib/firebase/client";
-import { useAuth } from "../../lib/useAuth";
-import { WardMap } from "../../components/WardMap";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { auth } from "@/lib/firebase";
+import { useAuth } from "@/lib/useAuth";
+import { WardMap } from "@/components/WardMap";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const DEPARTMENTS = [
   { dept: "Water Supply Dept", resolution: 92, days: 1.8, sla: "EXCEPTIONAL", active: 14, color: "#16A34A", bg: "#DCFCE7" },
@@ -60,7 +60,7 @@ export default function MLADashboardPage() {
 
   const handleSignOut = async () => {
     await fetch("/api/v1/auth/session", { method: "DELETE" });
-    await signOut(firebaseAuth);
+    await signOut(auth);
     router.replace("/login");
   };
 

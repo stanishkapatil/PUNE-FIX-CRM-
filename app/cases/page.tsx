@@ -16,10 +16,10 @@ import {
   type QueryDocumentSnapshot,
 } from "firebase/firestore";
 
-import { Sidebar } from "../../components/layout/Sidebar";
-import { Header } from "../../components/layout/Header";
-import { firebaseDb } from "../../lib/firebase/client";
-import { UrgencyBadge } from "../../components/shared/UrgencyBadge";
+import { Sidebar } from "@/components/Sidebar";
+import { Header } from "@/components/layout/Header";
+import { db } from "@/lib/firebase";
+import { UrgencyBadge } from "@/components/shared/UrgencyBadge";
 
 type CaseRow = {
   id: string;
@@ -52,7 +52,7 @@ function openStatuses() {
 }
 
 function buildQuery(filters: { status: string; ward: string; category: string }, cursor?: QueryDocumentSnapshot<DocumentData>) {
-  const casesCol = collection(firebaseDb, "cases");
+  const casesCol = collection(db, "cases");
   const clauses: any[] = [];
 
   if (filters.status === "open") clauses.push(where("status", "in", [...openStatuses()]));

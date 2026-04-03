@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 
-import { firebaseAuth } from "../../lib/firebase/client";
+import { auth } from "@/lib/firebase";
 
 type CaseStatus = "received" | "analysed" | "assigned" | "in_progress" | "resolved" | "closed";
 
@@ -26,7 +26,7 @@ const ALLOWED_TRANSITIONS: Record<CaseStatus, CaseStatus[]> = {
 };
 
 async function authedPatch(caseId: string, body: unknown) {
-  const user = firebaseAuth.currentUser;
+  const user = auth.currentUser;
   if (!user) throw new Error("Not authenticated");
   const token = await user.getIdToken();
   const res = await fetch(`/api/v1/cases/${caseId}`, {

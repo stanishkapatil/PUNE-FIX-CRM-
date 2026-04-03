@@ -16,7 +16,7 @@ import {
   type QueryDocumentSnapshot,
 } from "firebase/firestore";
 
-import { firebaseAuth, firebaseDb } from "../../lib/firebase/client";
+import { auth, db } from "@/lib/firebase";
 
 type Notif = {
   id: string;
@@ -74,13 +74,13 @@ export function NotificationBell() {
   }, []);
 
   useEffect(() => {
-    const unsubAuth = firebaseAuth.onAuthStateChanged((user) => {
+    const unsubAuth = auth.onAuthStateChanged((user) => {
       setItems([]);
       setUnreadCount(0);
 
       if (!user) return;
 
-      const base = collection(firebaseDb, "notifications", user.uid, "items");
+      const base = collection(db, "notifications", user.uid, "items");
 
       const qLatest = query(base, orderBy("created_at", "desc"), limit(10));
       const unsubLatest = onSnapshot(qLatest, (snap) => {
@@ -106,9 +106,9 @@ export function NotificationBell() {
   const title = useMemo(() => (hasUnread ? `${unreadCount} unread notifications` : "Notifications"), [hasUnread, unreadCount]);
 
   const markRead = async (notifId: string) => {
-    const user = firebaseAuth.currentUser;
+    const user = auth.currentUser;
     if (!user) return;
-    const ref = collection(firebaseDb, "notifications", user.uid, "items");
+    const ref = collection(db, "notifications", user.uid, "items");
     const docRef = (await import("firebase/firestore")).doc(ref, notifId);
     await updateDoc(docRef, { read_at: serverTimestamp() });
   };

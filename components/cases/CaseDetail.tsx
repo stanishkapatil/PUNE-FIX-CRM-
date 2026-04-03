@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AlertOctagon, Loader2, Phone, UserCog } from "lucide-react";
 import { collection, doc, getDocs, onSnapshot, query, where } from "firebase/firestore";
 
-import { firebaseAuth, firebaseDb } from "../../lib/firebase/client";
+import { auth, db } from "@/lib/firebase";
 import { UrgencyBadge } from "../shared/UrgencyBadge";
 import { StatusStepper } from "./StatusStepper";
 import { TimelineLog } from "./TimelineLog";
@@ -41,7 +41,7 @@ function maskPhone(phone: string | null | undefined): string {
 }
 
 async function authedPatch(caseId: string, body: unknown) {
-  const user = firebaseAuth.currentUser;
+  const user = auth.currentUser;
   if (!user) throw new Error("Not authenticated");
   const token = await user.getIdToken();
   const res = await fetch(`/api/v1/cases/${caseId}`, {
@@ -65,7 +65,7 @@ export function CaseDetail({ caseId }: { caseId: string }) {
   const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
-    const ref = doc(firebaseDb, "cases", caseId);
+    const ref = doc(db, "cases", caseId);
     const unsub = onSnapshot(
       ref,
       { includeMetadataChanges: true },
@@ -105,7 +105,7 @@ export function CaseDetail({ caseId }: { caseId: string }) {
     let cancelled = false;
     void (async () => {
       try {
-        const snap = await getDocs(query(collection(firebaseDb, "users"), where("role", "in", ["staff", "supervisor"])));
+        const snap = await getDocs(query(collection(db, "users"), where("role", "in", ["staff", "supervisor"])));
         const users = snap.docs.map((d) => ({ uid: d.id, name: String((d.data() as any)?.name ?? d.id), role: String((d.data() as any)?.role ?? "") }));
         if (!cancelled) setStaff(users);
       } catch {

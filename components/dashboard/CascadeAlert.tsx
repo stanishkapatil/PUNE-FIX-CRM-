@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, BellRing, WifiOff } from "lucide-react";
 import { collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
 
-import { firebaseDb } from "../../lib/firebase/client";
+import { db } from "@/lib/firebase";
 
 type AlertDoc = {
   id: string;
@@ -67,7 +67,7 @@ export function CascadeAlert() {
 
   useEffect(() => {
     const q = query(
-      collection(firebaseDb, "alerts"),
+      collection(db, "alerts"),
       where("is_active", "==", true),
       orderBy("created_at", "desc"),
     );

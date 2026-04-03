@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { collection, getCountFromServer, query, where } from "firebase/firestore";
 
-import { firebaseDb } from "../../lib/firebase/client";
+import { db } from "@/lib/firebase";
 
 type Row = { category: string; count: number };
 
@@ -39,7 +39,7 @@ export function CategoryChart() {
     void (async () => {
       setLoading(true);
       try {
-        const casesCol = collection(firebaseDb, "cases");
+        const casesCol = collection(db, "cases");
         const openStatuses = ["received", "analysed", "assigned", "in_progress", "resolved"];
 
         const counts = await Promise.all(
