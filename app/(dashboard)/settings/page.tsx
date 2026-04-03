@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { Sidebar } from '../../components/Sidebar';
+import { Sidebar } from '@/components/Sidebar';
 
 export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
@@ -38,10 +38,14 @@ export default function SettingsPage() {
         </div>
 
         {/* Notification Settings */}
-        <div style={{ background: 'white', borderRadius: 12,
-                       border: '1px solid #E2E8F0', padding: '24px', marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#1B2A4A',
-                        margin: '0 0 20px' }}>
+        <div style={{
+          background: 'white', borderRadius: 12,
+          border: '1px solid #E2E8F0', padding: '24px', marginBottom: 20
+        }}>
+          <h2 style={{
+            fontSize: 16, fontWeight: 700, color: '#1B2A4A',
+            margin: '0 0 20px'
+          }}>
             🔔 Notification Preferences
           </h2>
           {Object.entries(notifications).map(([key, value]) => {
@@ -95,10 +99,14 @@ export default function SettingsPage() {
         </div>
 
         {/* SLA Thresholds */}
-        <div style={{ background: 'white', borderRadius: 12,
-                       border: '1px solid #E2E8F0', padding: '24px', marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#1B2A4A',
-                        margin: '0 0 20px' }}>
+        <div style={{
+          background: 'white', borderRadius: 12,
+          border: '1px solid #E2E8F0', padding: '24px', marginBottom: 20
+        }}>
+          <h2 style={{
+            fontSize: 16, fontWeight: 700, color: '#1B2A4A',
+            margin: '0 0 20px'
+          }}>
             ⏱ SLA Thresholds (hours)
           </h2>
           {Object.entries(slaThresholds).map(([key, value]) => {

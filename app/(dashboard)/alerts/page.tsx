@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sidebar } from '../../components/Sidebar';
+import { Sidebar } from '@/components/Sidebar';
 
 interface Alert {
   id: string;
@@ -119,8 +119,10 @@ export default function AlertsPage() {
       <div style={{ flex: 1, padding: '32px' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', 
-                      alignItems: 'center', marginBottom: '24px' }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between',
+          alignItems: 'center', marginBottom: '24px'
+        }}>
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1B2A4A', margin: 0 }}>
               🔔 Alerts Center
@@ -158,8 +160,8 @@ export default function AlertsPage() {
               }}
             >
               {f === 'all' ? `All (${alerts.length})` :
-               f === 'unread' ? `Unread (${unreadCount})` :
-               f === 'cascade' ? 'Cascade' : 'SLA Warnings'}
+                f === 'unread' ? `Unread (${unreadCount})` :
+                  f === 'cascade' ? 'Cascade' : 'SLA Warnings'}
             </button>
           ))}
         </div>
@@ -191,11 +193,15 @@ export default function AlertsPage() {
                   opacity: alert.isRead ? 0.75 : 1,
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between',
-                               alignItems: 'flex-start' }}>
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between',
+                  alignItems: 'flex-start'
+                }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10,
-                                   marginBottom: 6 }}>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      marginBottom: 6
+                    }}>
                       <span style={{ fontSize: 18 }}>{getTypeIcon(alert.type)}</span>
                       <span style={{ fontSize: 15, fontWeight: 700, color: '#1B2A4A' }}>
                         {alert.title}
@@ -213,8 +219,10 @@ export default function AlertsPage() {
                     <p style={{ margin: '0 0 8px', fontSize: 14, color: '#475569' }}>
                       {alert.message}
                     </p>
-                    <div style={{ display: 'flex', gap: 12, fontSize: 12,
-                                   color: '#94A3B8' }}>
+                    <div style={{
+                      display: 'flex', gap: 12, fontSize: 12,
+                      color: '#94A3B8'
+                    }}>
                       <span>📍 {alert.ward}</span>
                       <span>🏷 {alert.category}</span>
                       <span>🕐 {alert.timestamp}</span>
