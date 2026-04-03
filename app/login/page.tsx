@@ -162,7 +162,7 @@ export default function LoginPage() {
           </div>
           <div>
             <div style={{ fontSize: "22px", fontWeight: "bold", color: "#1B2A4A", lineHeight: "1" }}>
-              P-CRM
+              Pune Fix
             </div>
             <div style={{ fontSize: "13px", color: "#94A3B8", marginTop: "2px" }}>
               Smart Public Governance

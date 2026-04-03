@@ -34,12 +34,12 @@ export function Navbar() {
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <span style={{ fontSize: "20px" }}>🏛</span>
           <span style={{ color: "#1B2A4A", fontSize: "16px", fontWeight: "bold" }}>
-            CityGov Portal
+            Pune Fix
           </span>
         </div>
 
         {/* Right Nav Links */}
-        <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
           <Link href="/" style={{ color: pathname === "/" ? "#2563EB" : "#1B2A4A", fontSize: "14px", textDecoration: "none", fontWeight: pathname === "/" ? "bold" : "normal" }}>
             Home
           </Link>
@@ -55,7 +55,10 @@ export function Navbar() {
           >
             Track Status
           </Link>
-          <Link href="#" style={{ color: "#1B2A4A", fontSize: "14px", textDecoration: "none" }}>
+          <Link 
+            href="/faq" 
+            style={{ color: pathname.startsWith("/faq") ? "#2563EB" : "#1B2A4A", fontSize: "14px", textDecoration: "none", fontWeight: pathname.startsWith("/faq") ? "bold" : "normal" }}
+          >
             FAQ
           </Link>
 
