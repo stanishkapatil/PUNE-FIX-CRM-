@@ -27,26 +27,29 @@ export default function DashboardPage() {
     }
   }, [user, role, loading, router]);
 
-  // Real-time cascade alert listener
+  // Real-time cascade alert listener (simplified to avoid composite index)
   useEffect(() => {
     if (!user) return;
     const alertsRef = collection(firebaseDb, "alerts");
     const q = query(
       alertsRef,
       where("type", "==", "cascade"),
-      where("isResolved", "==", false),
       orderBy("createdAt", "desc"),
       limit(1)
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
       if (!snapshot.empty) {
-        setCascadeAlert({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() });
+        const docData = snapshot.docs[0].data();
+        if (docData.isResolved === false) {
+          setCascadeAlert({ id: snapshot.docs[0].id, ...docData });
+        } else {
+          setCascadeAlert(null);
+        }
       } else {
         setCascadeAlert(null);
       }
     }, (err) => {
-      // Firestore index not yet created — fallback: check cases manually
-      console.warn("[alerts onSnapshot] Firestore index missing, falling back.", err.message);
+      console.warn("[alerts onSnapshot] error", err.message);
     });
     return () => unsubscribe();
   }, [user]);

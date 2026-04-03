@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { firebaseAuth, firebaseDb } from "../../lib/firebase/client";
 import { useAuth, UserRole } from "../../lib/useAuth";
@@ -102,7 +102,39 @@ export default function LoginPage() {
   }
 
   // Prevent flash of login screen if already authed
-  if (user) return null; 
+  if (user) {
+  return (
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#F8FAFC",
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    }}>
+      <h2 style={{ fontSize: "20px", color: "#1B2A4A", marginBottom: "12px" }}>You are already signed in</h2>
+      <button
+        onClick={async () => {
+          await signOut(firebaseAuth);
+          router.replace("/login");
+        }}
+        style={{
+          background: "#2563EB",
+          color: "white",
+          border: "none",
+          borderRadius: 8,
+          padding: "8px 16px",
+          cursor: "pointer",
+          fontSize: "14px",
+          fontWeight: "600",
+        }}
+      >
+        Log Out
+      </button>
+    </div>
+  );
+} 
 
   return (
     <div
