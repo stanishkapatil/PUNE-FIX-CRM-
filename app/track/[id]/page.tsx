@@ -8,10 +8,10 @@ import { LoadingSpinner } from "../../../components/LoadingSpinner";
 
 export default function TrackCasePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
-  
+
   const [caseData, setCaseData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -136,11 +136,11 @@ export default function TrackCasePage({ params }: { params: Promise<{ id: string
               📍 {caseData.ward}
             </span>
             {caseData.urgencyScore !== undefined && (
-                <UrgencyBadge urgency={caseData.urgencyScore >= 80 ? "CRITICAL" : caseData.urgencyScore >= 60 ? "HIGH" : caseData.urgencyScore >= 30 ? "MEDIUM" : "LOW"} />
+              <UrgencyBadge urgency={caseData.urgencyScore >= 80 ? "CRITICAL" : caseData.urgencyScore >= 60 ? "HIGH" : caseData.urgencyScore >= 30 ? "MEDIUM" : "LOW"} />
             )}
           </div>
           <div style={{ fontSize: "13px", color: "#64748B", marginTop: "8px" }}>
-             "{caseData.description}"
+            "{caseData.description}"
           </div>
         </div>
 
@@ -161,11 +161,11 @@ export default function TrackCasePage({ params }: { params: Promise<{ id: string
             return (
               <div key={index} style={{ display: "flex", gap: "16px" }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <div style={{ 
-                      width: "28px", height: "28px", borderRadius: "50%", 
-                      backgroundColor: isCompleted ? "#16A34A" : isCurrent ? "#2563EB" : "#E2E8F0", 
-                      color: isCompleted || isCurrent ? "#FFFFFF" : "#94A3B8", 
-                      display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px" 
+                  <div style={{
+                    width: "28px", height: "28px", borderRadius: "50%",
+                    backgroundColor: isCompleted ? "#16A34A" : isCurrent ? "#2563EB" : "#E2E8F0",
+                    color: isCompleted || isCurrent ? "#FFFFFF" : "#94A3B8",
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px"
                   }}>
                     {isCompleted ? "✓" : isCurrent ? "🔄" : "⏳"}
                   </div>
@@ -174,12 +174,12 @@ export default function TrackCasePage({ params }: { params: Promise<{ id: string
                 <div style={{ paddingBottom: isLast ? "0" : "16px" }}>
                   <div style={{ fontSize: "14px", fontWeight: "bold", color: step ? "#1B2A4A" : "#94A3B8" }}>{step ? step.title : defaultStep.title}</div>
                   <div style={{ fontSize: "12px", color: "#94A3B8" }}>
-                     {step ? `${new Date(step.timestamp).toLocaleDateString()} ${new Date(step.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : "Pending"}
+                    {step ? `${new Date(step.timestamp).toLocaleDateString()} ${new Date(step.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : "Pending"}
                   </div>
                 </div>
               </div>
             );
-         })}
+          })}
         </div>
 
         {/* OFFICER UPDATES */}
@@ -189,14 +189,14 @@ export default function TrackCasePage({ params }: { params: Promise<{ id: string
               OFFICER UPDATES
             </div>
             {caseData.officerUpdates.map((update: any, idx: number) => (
-               <div key={idx} style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
+              <div key={idx} style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
                 <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: "#F8FAFC", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", flexShrink: 0 }}>
                   👤
                 </div>
                 <div style={{ flex: 1, backgroundColor: "#F8FAFC", borderRadius: "12px", padding: "12px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                     <span style={{ fontSize: "13px", fontWeight: "bold", color: "#1B2A4A" }}>{update.officerName}</span>
-                    <span style={{ fontSize: "12px", color: "#94A3B8" }}>{new Date(update.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                    <span style={{ fontSize: "12px", color: "#94A3B8" }}>{new Date(update.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                   <p style={{ margin: "0", fontSize: "13px", color: "#64748B", fontStyle: "italic", lineHeight: "1.5" }}>
                     "{update.message}"
@@ -229,51 +229,51 @@ export default function TrackCasePage({ params }: { params: Promise<{ id: string
             Rate this experience ⭐
           </button>
           {!isResolved && (
-              <div style={{ textAlign: "center", fontSize: "11px", color: "#94A3B8", textTransform: "uppercase" }}>
-                AVAILABLE AFTER RESOLUTION
-              </div>
+            <div style={{ textAlign: "center", fontSize: "11px", color: "#94A3B8", textTransform: "uppercase" }}>
+              AVAILABLE AFTER RESOLUTION
+            </div>
           )}
         </div>
 
         {/* RATING MODAL */}
         {isModalOpen && (
-            <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "24px" }}>
-                <div style={{ backgroundColor: "#FFF", padding: "24px", borderRadius: "12px", width: "100%", maxWidth: "400px" }}>
-                    <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", color: "#1B2A4A" }}>Rate your experience</h3>
-                    <div style={{ display: "flex", gap: "8px", marginBottom: "16px", justifyContent: "center" }}>
-                        {[1, 2, 3, 4, 5].map(star => (
-                            <span 
-                                key={star} 
-                                onClick={() => setRating(star)}
-                                style={{ fontSize: "32px", cursor: "pointer", color: star <= rating ? "#F59E0B" : "#E2E8F0" }}
-                            >
-                                ★
-                            </span>
-                        ))}
-                    </div>
-                    <textarea 
-                        placeholder="Leave a comment (optional)..."
-                        value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                        style={{ width: "100%", height: "80px", border: "1px solid #E2E8F0", borderRadius: "8px", padding: "12px", marginBottom: "16px", fontFamily: "inherit", resize: "none" }}
-                    />
-                    <div style={{ display: "flex", gap: "12px" }}>
-                        <button 
-                            onClick={() => setIsModalOpen(false)}
-                            style={{ flex: 1, backgroundColor: "#E2E8F0", color: "#64748B", border: "none", borderRadius: "8px", padding: "12px", fontWeight: "bold", cursor: "pointer" }}
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            onClick={handleRatingSubmit}
-                            disabled={isSubmittingRating}
-                            style={{ flex: 1, backgroundColor: "#2563EB", color: "#FFF", border: "none", borderRadius: "8px", padding: "12px", fontWeight: "bold", cursor: "pointer", display: "flex", justifyContent: "center" }}
-                        >
-                            {isSubmittingRating ? <LoadingSpinner size={16} /> : "Submit"}
-                        </button>
-                    </div>
-                </div>
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "24px" }}>
+            <div style={{ backgroundColor: "#FFF", padding: "24px", borderRadius: "12px", width: "100%", maxWidth: "400px" }}>
+              <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", color: "#1B2A4A" }}>Rate your experience</h3>
+              <div style={{ display: "flex", gap: "8px", marginBottom: "16px", justifyContent: "center" }}>
+                {[1, 2, 3, 4, 5].map(star => (
+                  <span
+                    key={star}
+                    onClick={() => setRating(star)}
+                    style={{ fontSize: "32px", cursor: "pointer", color: star <= rating ? "#F59E0B" : "#E2E8F0" }}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+              <textarea
+                placeholder="Leave a comment (optional)..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                style={{ width: "100%", height: "80px", border: "1px solid #E2E8F0", borderRadius: "8px", padding: "12px", marginBottom: "16px", fontFamily: "inherit", resize: "none" }}
+              />
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  style={{ flex: 1, backgroundColor: "#E2E8F0", color: "#64748B", border: "none", borderRadius: "8px", padding: "12px", fontWeight: "bold", cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRatingSubmit}
+                  disabled={isSubmittingRating}
+                  style={{ flex: 1, backgroundColor: "#2563EB", color: "#FFF", border: "none", borderRadius: "8px", padding: "12px", fontWeight: "bold", cursor: "pointer", display: "flex", justifyContent: "center" }}
+                >
+                  {isSubmittingRating ? <LoadingSpinner size={16} /> : "Submit"}
+                </button>
+              </div>
             </div>
+          </div>
         )}
       </div>
     </div>
