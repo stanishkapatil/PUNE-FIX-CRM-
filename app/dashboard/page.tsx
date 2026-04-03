@@ -22,8 +22,12 @@ export default function DashboardPage() {
   const [cascadeAlert, setCascadeAlert] = useState<any | null>(null);
 
   useEffect(() => {
-    if (!loading && (!user || (role !== "staff" && role !== "supervisor" && role !== "admin"))) {
-        router.replace("/login");
+    if (!loading && !user) {
+      router.replace("/login");
+    } else if (!loading && user && role === "mla") {
+      router.replace("/mla");
+    } else if (!loading && user && role !== "staff" && role !== "supervisor" && role !== "admin" && role !== null) {
+      router.replace("/login");
     }
   }, [user, role, loading, router]);
 

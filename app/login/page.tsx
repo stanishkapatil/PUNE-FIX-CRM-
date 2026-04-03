@@ -101,40 +101,24 @@ export default function LoginPage() {
      return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}><LoadingSpinner color="#2563EB" size={32} /></div>;
   }
 
-  // Prevent flash of login screen if already authed
+  // Already authenticated — show spinner while useEffect redirect fires
   if (user) {
-  return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: "#F8FAFC",
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    }}>
-      <h2 style={{ fontSize: "20px", color: "#1B2A4A", marginBottom: "12px" }}>You are already signed in</h2>
-      <button
-        onClick={async () => {
-          await signOut(firebaseAuth);
-          router.replace("/login");
-        }}
-        style={{
-          background: "#2563EB",
-          color: "white",
-          border: "none",
-          borderRadius: 8,
-          padding: "8px 16px",
-          cursor: "pointer",
-          fontSize: "14px",
-          fontWeight: "600",
-        }}
-      >
-        Log Out
-      </button>
-    </div>
-  );
-} 
+    return (
+      <div style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#F8FAFC",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        gap: "16px",
+      }}>
+        <LoadingSpinner color="#2563EB" size={32} />
+        <p style={{ fontSize: "14px", color: "#64748B" }}>Redirecting to your dashboard…</p>
+      </div>
+    );
+  } 
 
   return (
     <div

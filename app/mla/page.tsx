@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { signOut } from "firebase/auth";
+import { firebaseAuth } from "../../lib/firebase/client";
+import { useAuth } from "../../lib/useAuth";
 import { WardMap } from "../../components/WardMap";
+import { LoadingSpinner } from "../../components/LoadingSpinner";
 
 const DEPARTMENTS = [
   { dept: "Water Supply Dept", resolution: 92, days: 1.8, sla: "EXCEPTIONAL", active: 14, color: "#16A34A", bg: "#DCFCE7" },
@@ -20,10 +24,44 @@ const COMPLAINT_CATEGORIES = [
   { label: "Illegal Encroachments", count: 25, max: 82 },
 ];
 
+const NAV_ITEMS = [
+  { label: "Dashboard", href: "/mla" },
+  { label: "Complaints", href: "/cases" },
+  { label: "Reports", href: "/reports" },
+];
+
 export default function MLADashboardPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<"Resolution Rate" | "Complaint Volume">("Resolution Rate");
   const [searchQuery, setSearchQuery] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Auth guard
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/login");
+    }
+  }, [user, loading, router]);
+
+  const handleSignOut = async () => {
+    await signOut(firebaseAuth);
+    router.replace("/login");
+  };
 
   const handleDownload = () => {
     const data = `Pune Ward Cluster — Weekly Report
@@ -53,95 +91,261 @@ Pune Municipal Corporation`;
     URL.revokeObjectURL(url);
   };
 
+  if (loading) {
+    return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}><LoadingSpinner color="#2563EB" size={32} /></div>;
+  }
+
   return (
     <div style={{
       minHeight: "100vh",
       backgroundColor: "#F8FAFC",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     }}>
+      {/* ── Responsive CSS ── */}
+      <style>{`
+        .mla-nav-desktop { display: flex; }
+        .mla-hamburger { display: none; }
+        .mla-search-desktop { display: block; }
+        .mla-mobile-menu { display: none; }
+        @media (max-width: 768px) {
+          .mla-nav-desktop { display: none !important; }
+          .mla-hamburger { display: flex !important; }
+          .mla-search-desktop { display: none !important; }
+          .mla-mobile-menu { display: flex !important; }
+        }
+      `}</style>
+
       {/* ── TOP NAVBAR ── */}
       <header style={{
-        height: 64,
         backgroundColor: "#1B2A4A",
-        display: "flex",
-        alignItems: "center",
-        padding: "0 32px",
-        justifyContent: "space-between",
-        gap: 24,
+        padding: "0 24px",
         flexShrink: 0,
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
       }}>
-        {/* Left — branding + nav */}
-        <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#FFFFFF" }}>Pune Ward Cluster</div>
-            <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 1 }}>MLA Constituency Portal</div>
+        <div style={{
+          height: 64,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          maxWidth: 1400,
+          margin: "0 auto",
+        }}>
+          {/* Left — branding + nav */}
+          <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
+            <div style={{ cursor: "pointer" }} onClick={() => router.push("/mla")}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#FFFFFF" }}>Pune Ward Cluster</div>
+              <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 1 }}>MLA Constituency Portal</div>
+            </div>
+
+            {/* Desktop nav */}
+            <nav className="mla-nav-desktop" style={{ gap: 4, alignItems: "center" }}>
+              {NAV_ITEMS.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <div
+                    key={item.label}
+                    onClick={() => router.push(item.href)}
+                    style={{
+                      padding: "6px 14px",
+                      borderRadius: 6,
+                      fontSize: 13,
+                      fontWeight: isActive ? 600 : 400,
+                      color: isActive ? "#FFFFFF" : "#94A3B8",
+                      backgroundColor: isActive ? "rgba(255,255,255,0.12)" : "transparent",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = "#FFFFFF"; e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)"; }}
+                    onMouseLeave={(e) => { if (!isActive) { e.currentTarget.style.color = "#94A3B8"; e.currentTarget.style.backgroundColor = "transparent"; } }}
+                  >
+                    {item.label}
+                  </div>
+                );
+              })}
+            </nav>
+
+            {/* Hamburger button (mobile) */}
+            <button
+              className="mla-hamburger"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                color: "#FFFFFF", fontSize: 22, padding: 4,
+                display: "none", alignItems: "center", justifyContent: "center",
+              }}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? "✕" : "☰"}
+            </button>
           </div>
-          <nav style={{ display: "flex", gap: 4 }}>
-            {[
-              { label: "Dashboard", active: true },
-              { label: "Complaints", active: false },
-              { label: "Departments", active: false },
-              { label: "Reports", active: false },
-            ].map((item) => (
+
+          {/* Right — search + notification + profile */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <input
+              className="mla-search-desktop"
+              type="text"
+              placeholder="Search wards, complaints…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                height: 36,
+                padding: "0 14px",
+                borderRadius: 8,
+                border: "1px solid rgba(255,255,255,0.15)",
+                background: "rgba(255,255,255,0.08)",
+                color: "#FFFFFF",
+                fontSize: 13,
+                outline: "none",
+                width: 200,
+              }}
+            />
+            <div style={{
+              width: 36, height: 36, borderRadius: "50%",
+              background: "rgba(255,255,255,0.15)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", fontSize: 16, position: "relative",
+            }}>
+              🔔
+              <span style={{
+                position: "absolute", top: 4, right: 4,
+                width: 8, height: 8, borderRadius: "50%",
+                background: "#EF4444", border: "1.5px solid #1B2A4A",
+              }} />
+            </div>
+
+            {/* Profile avatar + dropdown */}
+            <div ref={dropdownRef} style={{ position: "relative" }}>
               <div
-                key={item.label}
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                 style={{
-                  padding: "6px 14px",
-                  borderRadius: 6,
-                  fontSize: 13,
-                  fontWeight: item.active ? 600 : 400,
-                  color: item.active ? "#FFFFFF" : "#94A3B8",
-                  backgroundColor: item.active ? "rgba(255,255,255,0.12)" : "transparent",
-                  cursor: "pointer",
+                  width: 36, height: 36, borderRadius: "50%",
+                  background: "#2563EB",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "#FFF", fontWeight: 700, fontSize: 14, cursor: "pointer",
+                  border: profileDropdownOpen ? "2px solid #60A5FA" : "2px solid transparent",
+                  transition: "border 0.2s ease",
                 }}
               >
-                {item.label}
+                MLA
               </div>
-            ))}
-          </nav>
+
+              {/* Dropdown menu */}
+              {profileDropdownOpen && (
+                <div style={{
+                  position: "absolute",
+                  top: "calc(100% + 8px)",
+                  right: 0,
+                  width: 220,
+                  background: "#FFFFFF",
+                  borderRadius: 10,
+                  border: "1px solid #E2E8F0",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                  overflow: "hidden",
+                  zIndex: 200,
+                  animation: "fadeIn 0.15s ease",
+                }}>
+                  <div style={{ padding: "14px 16px", borderBottom: "1px solid #F1F5F9" }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#1B2A4A" }}>
+                      {user?.email?.split("@")[0] || "MLA User"}
+                    </div>
+                    <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>
+                      {user?.email || "mla@pune.gov.in"}
+                    </div>
+                    <div style={{
+                      display: "inline-block", marginTop: 6,
+                      fontSize: 10, fontWeight: 700, color: "#2563EB",
+                      background: "#EFF6FF", padding: "2px 8px", borderRadius: 10,
+                    }}>
+                      MLA
+                    </div>
+                  </div>
+                  <div style={{ padding: "6px" }}>
+                    <button
+                      onClick={() => { setProfileDropdownOpen(false); router.push("/settings"); }}
+                      style={{
+                        width: "100%", padding: "8px 12px", border: "none",
+                        background: "none", cursor: "pointer", textAlign: "left",
+                        fontSize: 13, color: "#1B2A4A", borderRadius: 6,
+                        display: "flex", alignItems: "center", gap: 8,
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "#F8FAFC"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "none"}
+                    >
+                      ⚙️ Settings
+                    </button>
+                    <button
+                      onClick={handleSignOut}
+                      style={{
+                        width: "100%", padding: "8px 12px", border: "none",
+                        background: "none", cursor: "pointer", textAlign: "left",
+                        fontSize: 13, color: "#DC2626", borderRadius: 6,
+                        display: "flex", alignItems: "center", gap: 8,
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "#FEF2F2"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "none"}
+                    >
+                      🚪 Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Right — search + icons + avatar */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <input
-            type="text"
-            placeholder="Search wards, complaints…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+        {/* ── Mobile nav menu ── */}
+        {mobileMenuOpen && (
+          <div
+            className="mla-mobile-menu"
             style={{
-              height: 36,
-              padding: "0 14px",
-              borderRadius: 8,
-              border: "1px solid rgba(255,255,255,0.15)",
-              background: "rgba(255,255,255,0.08)",
-              color: "#FFFFFF",
-              fontSize: 13,
-              outline: "none",
-              width: 200,
+              display: "none",
+              flexDirection: "column",
+              gap: 2,
+              paddingBottom: 12,
+              borderTop: "1px solid rgba(255,255,255,0.1)",
             }}
-          />
-          <div style={{
-            width: 36, height: 36, borderRadius: "50%",
-            background: "rgba(255,255,255,0.15)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", fontSize: 16, position: "relative",
-          }}>
-            🔔
-            <span style={{
-              position: "absolute", top: 4, right: 4,
-              width: 8, height: 8, borderRadius: "50%",
-              background: "#EF4444", border: "1.5px solid #1B2A4A",
-            }} />
+          >
+            {NAV_ITEMS.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <div
+                  key={item.label}
+                  onClick={() => { router.push(item.href); setMobileMenuOpen(false); }}
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: 6,
+                    fontSize: 14,
+                    fontWeight: isActive ? 600 : 400,
+                    color: isActive ? "#FFFFFF" : "#94A3B8",
+                    backgroundColor: isActive ? "rgba(255,255,255,0.12)" : "transparent",
+                    cursor: "pointer",
+                  }}
+                >
+                  {item.label}
+                </div>
+              );
+            })}
+            <div
+              onClick={handleSignOut}
+              style={{
+                padding: "10px 14px",
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                color: "#F87171",
+                cursor: "pointer",
+                marginTop: 4,
+                borderTop: "1px solid rgba(255,255,255,0.1)",
+                paddingTop: 14,
+              }}
+            >
+              🚪 Sign Out
+            </div>
           </div>
-          <div style={{
-            width: 36, height: 36, borderRadius: "50%",
-            background: "#2563EB",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#FFF", fontWeight: 700, fontSize: 14, cursor: "pointer",
-          }}>
-            MLA
-          </div>
-        </div>
+        )}
       </header>
 
       {/* ── MAIN CONTENT ── */}
