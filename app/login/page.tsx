@@ -9,6 +9,29 @@ import { useAuth, UserRole } from "../../lib/useAuth";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { toast } from "react-hot-toast";
 
+// Quick-fill helper for judges
+function DemoBtn({ label, email, password, onFill }: { label: string; email: string; password: string; onFill: (e: string, p: string) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onFill(email, password)}
+      style={{
+        flex: 1,
+        background: "none",
+        border: "1px solid #BBF7D0",
+        borderRadius: 6,
+        padding: "4px 0",
+        fontSize: 11,
+        color: "#15803D",
+        cursor: "pointer",
+        fontWeight: 600,
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { user, role, loading } = useAuth();
@@ -17,6 +40,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loginError, setLoginError] = useState("");
+
+  const fillDemo = (e: string, p: string) => {
+    setEmail(e);
+    setPassword(p);
+    setLoginError("");
+  };
 
   useEffect(() => {
     if (!loading && user) {
@@ -29,13 +59,15 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError("");
     if (!email.trim() || !password) {
-        return toast.error("Please enter email and password");
+        setLoginError("Please enter your email and password.");
+        return;
     }
 
     setIsSubmitting(true);
     try {
-        const cred = await signInWithEmailAndPassword(firebaseAuth, email, password);
+        const cred = await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
         const userDoc = await getDoc(doc(firebaseDb, "users", cred.user.uid));
         
         let fetchedRole: UserRole = null;
@@ -43,12 +75,19 @@ export default function LoginPage() {
             fetchedRole = userDoc.data().role as UserRole;
         }
 
-        if (fetchedRole === "admin") router.push("/admin");
+        if (fetchedRole === "admin") router.push("/dashboard");
         else if (fetchedRole === "mla") router.push("/mla");
         else router.push("/dashboard");
         
     } catch (error: any) {
-        toast.error("Invalid email or password");
+        const code = error?.code || "";
+        if (code === "auth/user-not-found" || code === "auth/wrong-password" || code === "auth/invalid-credential") {
+            setLoginError("Invalid email or password. Please try again.");
+        } else if (code === "auth/too-many-requests") {
+            setLoginError("Too many attempts. Please wait a few minutes.");
+        } else {
+            setLoginError("Login failed. Please try again.");
+        }
         setIsSubmitting(false);
     }
   };
@@ -121,9 +160,24 @@ export default function LoginPage() {
         <h1 style={{ margin: "0 0 4px 0", fontSize: "20px", fontWeight: "bold", color: "#1B2A4A" }}>
           Welcome back
         </h1>
-        <p style={{ margin: "0 0 24px 0", fontSize: "13px", color: "#94A3B8" }}>
+        <p style={{ margin: "0 0 20px 0", fontSize: "13px", color: "#94A3B8" }}>
           Sign in to your account
         </p>
+
+        {/* Inline error */}
+        {loginError && (
+          <div style={{
+            background: "#FEF2F2",
+            border: "1px solid #FECACA",
+            borderRadius: 8,
+            padding: "10px 14px",
+            fontSize: 13,
+            color: "#DC2626",
+            marginBottom: 4,
+          }}>
+            ⚠️ {loginError}
+          </div>
+        )}
 
         {/* FORM */}
         <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -210,8 +264,39 @@ export default function LoginPage() {
         </form>
 
         <p style={{ margin: "16px 0 0 0", fontSize: "12px", color: "#94A3B8", textAlign: "center" }}>
-          Access restricted to authorized personnel only.
+          🔒 Access restricted to authorized personnel only.
         </p>
+
+        {/* ── DEMO CREDENTIALS (visible to judges) ── */}
+        <div style={{
+          marginTop: 20,
+          background: "#F0FDF4",
+          borderRadius: 10,
+          border: "1px solid #BBF7D0",
+          padding: "14px 16px",
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#15803D", marginBottom: 10 }}>
+            🎯 Demo Credentials — Click to fill
+          </div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+            <DemoBtn
+              label="👤 Staff Login"
+              email="staff@pune.gov.in"
+              password="Demo@1234"
+              onFill={fillDemo}
+            />
+            <DemoBtn
+              label="🏛️ MLA Login"
+              email="mla@pune.gov.in"
+              password="Demo@1234"
+              onFill={fillDemo}
+            />
+          </div>
+          <div style={{ fontSize: 10, color: "#166534", lineHeight: 1.6 }}>
+            <div>Staff: staff@pune.gov.in / Demo@1234</div>
+            <div>MLA&nbsp;&nbsp;&nbsp;: mla@pune.gov.in / Demo@1234</div>
+          </div>
+        </div>
       </div>
     </div>
   );

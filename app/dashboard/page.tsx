@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { collection, query, where, orderBy, limit, onSnapshot, getDocs } from "firebase/firestore";
 import { useAuth } from "../../lib/useAuth";
 import { Sidebar } from "../../components/Sidebar";
 import { UrgencyBadge } from "../../components/UrgencyBadge";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { firebaseDb } from "../../lib/firebase/client";
 import { toast } from "react-hot-toast";
 
 export default function DashboardPage() {
@@ -17,7 +19,7 @@ export default function DashboardPage() {
   const [isRefreshingBrief, setIsRefreshingBrief] = useState(false);
   
   const [cases, setCases] = useState<any[]>([]);
-  const [cascadeAlerts, setCascadeAlerts] = useState<any[]>([]);
+  const [cascadeAlert, setCascadeAlert] = useState<any | null>(null);
 
   useEffect(() => {
     if (!loading && (!user || (role !== "staff" && role !== "supervisor" && role !== "admin"))) {
@@ -25,29 +27,55 @@ export default function DashboardPage() {
     }
   }, [user, role, loading, router]);
 
+  // Real-time cascade alert listener
+  useEffect(() => {
+    if (!user) return;
+    const alertsRef = collection(firebaseDb, "alerts");
+    const q = query(
+      alertsRef,
+      where("type", "==", "cascade"),
+      where("isResolved", "==", false),
+      orderBy("createdAt", "desc"),
+      limit(1)
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        setCascadeAlert({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() });
+      } else {
+        setCascadeAlert(null);
+      }
+    }, (err) => {
+      // Firestore index not yet created — fallback: check cases manually
+      console.warn("[alerts onSnapshot] Firestore index missing, falling back.", err.message);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
   useEffect(() => {
     if (user && (role === "admin" || role === "staff" || role === "supervisor")) {
         const fetchDashboardData = async () => {
              try {
-                const { collection, getDocs, query, orderBy, limit } = await import("firebase/firestore");
-                const { firebaseDb } = await import("../../lib/firebase/client");
+                const { collection: col, getDocs: gd, query: q2, orderBy: ob, limit: lim } = await import("firebase/firestore");
+                const { firebaseDb: fdb } = await import("../../lib/firebase/client");
                 
-                const q = query(collection(firebaseDb, "cases"), orderBy("createdAt", "desc"), limit(50));
-                const snap = await getDocs(q);
+                const q = q2(col(fdb, "cases"), ob("createdAt", "desc"), lim(50));
+                const snap = await gd(q);
                 const loaded = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }));
 
                 const tableCases = [...loaded].sort((a,b) => (b.urgencyScore || 0) - (a.urgencyScore || 0)).slice(0, 5);
                 setCases(tableCases);
 
-                const cascadeMatches = loaded.filter(c => c.category === "Water Supply" && c.ward === "Ward 7" && c.status !== "resolved" && c.status !== "closed");
-                if (cascadeMatches.length >= 3) {
-                   setCascadeAlerts([{
-                     title: "Water Supply · Ward 7",
-                     count: cascadeMatches.length,
-                     desc: "Pattern detected: Repeated water supply failures. Recommend immediate field inspection.",
-                   }]);
-                } else {
-                   setCascadeAlerts([]);
+                // Fallback cascade detection from cases if alerts collection is empty
+                if (!cascadeAlert) {
+                  const cascadeMatches = loaded.filter(c => c.category === "Water Supply" && c.ward === "Ward 7" && c.status !== "resolved" && c.status !== "closed");
+                  if (cascadeMatches.length >= 3) {
+                    setCascadeAlert({
+                      category: "Water Supply",
+                      ward: "Ward 7",
+                      caseCount: cascadeMatches.length,
+                      message: `Water Supply · Ward 7 · ${cascadeMatches.length} complaints detected`,
+                    });
+                  }
                 }
              } catch (e) {
                 console.error("Dashboard fetch error:", e);
@@ -197,45 +225,42 @@ export default function DashboardPage() {
           </div>
 
           {/* CASCADE ALERT BANNER */}
-          {cascadeAlerts.map((alert, i) => (
+          {cascadeAlert && (
             <div
-                key={i}
-                style={{
-                backgroundColor: "#FEF2F2",
+              style={{
+                background: "#FEF2F2",
+                border: "1px solid #FECACA",
                 borderLeft: "4px solid #DC2626",
-                borderRadius: "8px",
-                padding: "16px",
-                marginBottom: "24px",
+                borderRadius: 8,
+                padding: "16px 20px",
+                marginBottom: 24,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
                 flexWrap: "wrap",
-                gap: "16px",
-                }}
+                gap: 16,
+              }}
             >
-                <div>
-                <div style={{ fontSize: "14px", fontWeight: "bold", color: "#DC2626", marginBottom: "4px" }}>
-                    🚨 CASCADE ALERT — {alert.title}
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#DC2626", marginBottom: 4 }}>
+                  🚨 CASCADE ALERT — {cascadeAlert.category} · {cascadeAlert.ward}
                 </div>
-                <div style={{ fontSize: "13px", color: "#64748B", marginBottom: "8px" }}>
-                    {alert.desc}
+                <div style={{ fontSize: 13, color: "#991B1B", marginTop: 4 }}>
+                  {cascadeAlert.caseCount || "Multiple"} complaints in 72 hours · Probable systemic issue
                 </div>
-                <button 
-                    onClick={handleEscalate}
-                    style={{ backgroundColor: "#DC2626", color: "#FFF", border: "none", padding: "6px 12px", borderRadius: "6px", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}>
-                    Escalate to Supervisor
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => router.push("/cases")}
+                  style={{ background: "#2563EB", color: "white", border: "none", borderRadius: 8, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                  View Cases →
                 </button>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
-                <div style={{ fontSize: "12px", color: "#DC2626" }}>
-                    {alert.count} complaints in 72 hours · CRITICAL
-                </div>
-                <span onClick={() => {router.push("/cases")}} style={{ color: "#2563EB", fontSize: "14px", fontWeight: "bold", textDecoration: "none", cursor: "pointer" }}>
-                    View Cases →
-                </span>
-                </div>
+                <button onClick={handleEscalate}
+                  style={{ background: "white", color: "#DC2626", border: "1px solid #FECACA", borderRadius: 8, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                  Escalate
+                </button>
+              </div>
             </div>
-          ))}
+          )}
 
           {/* PRIORITY QUEUE TABLE */}
           <div style={{ backgroundColor: "#FFFFFF", borderRadius: "12px", border: "1px solid #E2E8F0", overflow: "hidden" }}>
