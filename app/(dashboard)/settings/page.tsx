@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { Sidebar } from '@/components/Sidebar';
+
 
 export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
@@ -24,9 +24,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC' }}>
-      <Sidebar />
-      <div style={{ flex: 1, padding: '32px', maxWidth: 800 }}>
+    <div style={{ padding: '32px', maxWidth: 800 }}>
 
         <div style={{ marginBottom: 32 }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1B2A4A', margin: 0 }}>
@@ -156,6 +154,5 @@ export default function SettingsPage() {
           {saved ? '✅ Settings Saved!' : 'Save Settings'}
         </button>
       </div>
-    </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { Sidebar } from '@/components/Sidebar';
+
 
 const stats = {
   totalCases: 247,
@@ -61,9 +61,7 @@ ${weeklyData.map(d => `${d.day}: ${d.submitted} submitted, ${d.resolved} resolve
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC' }}>
-      <Sidebar />
-      <div style={{ flex: 1, padding: '32px' }}>
+    <div style={{ padding: '32px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between',
@@ -196,7 +194,6 @@ ${weeklyData.map(d => `${d.day}: ${d.submitted} submitted, ${d.resolved} resolve
               </span>
             </div>
           </div>
-        </div>
       </div>
     </div>
   );

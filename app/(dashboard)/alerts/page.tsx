@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sidebar } from '@/components/Sidebar';
+
 
 interface Alert {
   id: string;
@@ -114,9 +114,7 @@ export default function AlertsPage() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC' }}>
-      <Sidebar />
-      <div style={{ flex: 1, padding: '32px' }}>
+    <div style={{ padding: '32px' }}>
 
         {/* Header */}
         <div style={{
@@ -255,7 +253,6 @@ export default function AlertsPage() {
               </div>
             );
           })}
-        </div>
       </div>
     </div>
   );

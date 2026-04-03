@@ -33,12 +33,12 @@ export default function DashboardLayout({
             border: '3px solid #E2E8F0',
             borderTop: '3px solid #2563EB',
             borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
             margin: '0 auto 12px',
           }} />
-          <p style={{ color: '#94A3B8', fontSize: 14 }}>Loading...</p>
+          <p style={{ color: '#94A3B8', fontSize: 14, margin: 0 }}>
+            Loading...
+          </p>
         </div>
-        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
@@ -46,9 +46,17 @@ export default function DashboardLayout({
   if (!user) return null;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC' }}>
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      background: '#F8FAFC',
+    }}>
       <Sidebar />
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{
+        flex: 1,
+        overflow: 'auto',
+        minWidth: 0,
+      }}>
         {children}
       </div>
     </div>

@@ -16,7 +16,7 @@ import {
   type QueryDocumentSnapshot,
 } from "firebase/firestore";
 
-import { Sidebar } from "@/components/Sidebar";
+
 import { Header } from "@/components/layout/Header";
 import { db } from "@/lib/firebase";
 import { UrgencyBadge } from "@/components/shared/UrgencyBadge";
@@ -175,11 +175,7 @@ function CasesContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="flex">
-        <Sidebar />
-
-        <div className="flex-1 min-w-0">
+    <div className="flex-1 min-w-0">
           <div className="sticky top-0 z-40">
             <Header title="Cases" />
           </div>
@@ -331,9 +327,7 @@ function CasesContent() {
               </div>
             ) : null}
           </main>
-        </div>
       </div>
-    </div>
   );
 }
 

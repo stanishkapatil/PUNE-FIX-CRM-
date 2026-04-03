@@ -1,323 +1,178 @@
 "use client";
-
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { collection, query, where, orderBy, limit, onSnapshot, getDocs } from "firebase/firestore";
-import { useAuth } from "@/lib/useAuth";
-import { Sidebar } from "@/components/Sidebar";
-import { UrgencyBadge } from "@/components/UrgencyBadge";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { db } from "@/lib/firebase";
-import { toast } from "react-hot-toast";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/useAuth';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, role, loading } = useAuth();
-
-  const [briefText, setBriefText] = useState("3 critical water supply cases in Ward 7 require immediate attention — cascade pattern detected. Officer Kumar is approaching SLA breach on Case #1038. Prioritize water cases before electrical queue today.");
-  const [briefTime, setBriefTime] = useState("8:30 AM");
-  const [isRefreshingBrief, setIsRefreshingBrief] = useState(false);
-
-  const [cases, setCases] = useState<any[]>([]);
-  const [cascadeAlert, setCascadeAlert] = useState<any | null>(null);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/login");
-    } else if (!loading && user && role === "mla") {
-      router.replace("/mla");
-    } else if (!loading && user && role !== "staff" && role !== "supervisor" && role !== "admin" && role !== null) {
-      router.replace("/login");
-    }
-  }, [user, role, loading, router]);
-
-  // Real-time cascade alert listener (simplified to avoid composite index)
-  useEffect(() => {
-    if (!user) return;
-    const alertsRef = collection(db, "alerts");
-    const q = query(
-      alertsRef,
-      where("type", "==", "cascade"),
-      orderBy("createdAt", "desc"),
-      limit(1)
-    );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        const docData = snapshot.docs[0].data();
-        if (docData.isResolved === false) {
-          setCascadeAlert({ id: snapshot.docs[0].id, ...docData });
-        } else {
-          setCascadeAlert(null);
-        }
-      } else {
-        setCascadeAlert(null);
-      }
-    }, (err) => {
-      console.warn("[alerts onSnapshot] error", err.message);
-    });
-    return () => unsubscribe();
-  }, [user]);
-
-  useEffect(() => {
-    if (user && (role === "admin" || role === "staff" || role === "supervisor")) {
-      const fetchDashboardData = async () => {
-        try {
-          const { collection: col, getDocs: gd, query: q2, orderBy: ob, limit: lim } = await import("firebase/firestore");
-          const { db: fdb } = await import("@/lib/firebase");
-
-          const q = q2(col(fdb, "cases"), ob("createdAt", "desc"), lim(50));
-          const snap = await gd(q);
-          const loaded = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }));
-
-          const tableCases = [...loaded].sort((a, b) => (b.urgencyScore || 0) - (a.urgencyScore || 0)).slice(0, 5);
-          setCases(tableCases);
-
-          // Fallback cascade detection from cases if alerts collection is empty
-          if (!cascadeAlert) {
-            const cascadeMatches = loaded.filter(c => c.category === "Water Supply" && c.ward === "Ward 7" && c.status !== "resolved" && c.status !== "closed");
-            if (cascadeMatches.length >= 3) {
-              setCascadeAlert({
-                category: "Water Supply",
-                ward: "Ward 7",
-                caseCount: cascadeMatches.length,
-                message: `Water Supply · Ward 7 · ${cascadeMatches.length} complaints detected`,
-              });
-            }
-          }
-        } catch (e) {
-          console.error("Dashboard fetch error:", e);
-        }
-      };
-      fetchDashboardData();
-    }
-  }, [user, role, loading]);
-
-  const refreshBrief = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsRefreshingBrief(true);
-    try {
-      const res = await fetch("/api/ai/brief");
-      const data = await res.json();
-      if (data.brief) {
-        setBriefText(data.brief);
-        setBriefTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-        toast.success("AI Brief updated");
-      }
-    } catch (err) {
-      toast.error("Failed to refresh brief");
-    } finally {
-      setIsRefreshingBrief(false);
-    }
-  };
-
-  const handleEscalate = async () => {
-    toast.success("Escalated to Supervisor successfully!");
-  }
-
-  if (loading || !user) {
-    return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}><LoadingSpinner color="#2563EB" size={32} /></div>;
-  }
+  const { user, role } = useAuth();
 
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        backgroundColor: "#F8FAFC",
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      }}
-    >
-      <Sidebar />
+    <div style={{ padding: '32px' }}>
 
-      {/* RIGHT CONTENT AREA */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, height: "100vh", overflowY: "auto" }}>
-        {/* TOP BAR */}
-        <header
-          style={{
-            height: "64px",
-            backgroundColor: "#FFFFFF",
-            borderBottom: "1px solid #E2E8F0",
-            padding: "0 32px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexShrink: 0
-          }}
-        >
-          <div style={{ fontSize: "18px", fontWeight: "bold", color: "#1B2A4A" }}>
-            Good morning{user.email ? `, ${user.email.split("@")[0]}` : ""} 👋
+      {/* Top bar */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 32,
+      }}>
+        <h1 style={{
+          fontSize: 22, fontWeight: 700,
+          color: '#1B2A4A', margin: 0,
+        }}>
+          Good morning, {user?.displayName || 'Staff'} 👋
+        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 10, height: 10,
+            borderRadius: '50%', background: '#16A34A',
+          }} />
+          <div style={{
+            width: 36, height: 36,
+            borderRadius: '50%', background: '#E2E8F0',
+            display: 'flex', alignItems: 'center',
+            justifyContent: 'center', fontSize: 16,
+          }}>
+            👤
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "20px" }}>
-            <div style={{ position: "relative", cursor: "pointer" }}>
-
-              <div style={{ position: "absolute", top: -2, right: -4, width: 8, height: 8, backgroundColor: "#DC2626", borderRadius: "50%", border: "1px solid #FFFFFF" }} />
-            </div>
-            <span style={{ cursor: "pointer" }}></span>
-            <div
-              style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "50%",
-                backgroundColor: "#E2E8F0",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "16px",
-              }}
-            >
-
-            </div>
-          </div>
-        </header>
-
-        {/* MAIN DASHBOARD CONTENT */}
-        <main style={{ padding: "32px", flex: 1 }}>
-
-          {/* AI SITUATION BRIEF CARD */}
-          <div
-            style={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "12px",
-              border: "1px solid #E2E8F0",
-              padding: "24px",
-              marginBottom: "24px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-              <div style={{ fontSize: "16px", fontWeight: "bold", color: "#1B2A4A", display: "flex", alignItems: "center", gap: "8px" }}>
-                🤖 AI Situation Brief
-                {isRefreshingBrief && <LoadingSpinner size={14} color="#2563EB" />}
-              </div>
-              <a href="#" aria-label="Refresh AI Brief" onClick={refreshBrief} style={{ color: "#2563EB", fontSize: "12px", textDecoration: "none" }}>Refresh ↺</a>
-            </div>
-            <div style={{ fontSize: "11px", color: "#94A3B8", marginBottom: "16px" }}>Generated at {briefTime}</div>
-
-            <div
-              style={{
-                backgroundColor: "#EFF6FF",
-                borderLeft: "3px solid #2563EB",
-                borderRadius: "8px",
-                padding: "16px",
-              }}
-            >
-              <p style={{ margin: 0, fontSize: "14px", color: "#64748B", lineHeight: "1.6" }}>
-                {briefText}
-              </p>
-            </div>
-          </div>
-
-          {/* 4 KPI CARDS */}
-          <div style={{ display: "flex", gap: "24px", marginBottom: "24px", flexWrap: "wrap" }}>
-            <div style={{ flex: "1 1 200px", backgroundColor: "#FFFFFF", borderRadius: "12px", border: "1px solid #E2E8F0", padding: "20px" }}>
-              <div style={{ fontSize: "14px", color: "#64748B", marginBottom: "8px" }}>Open Cases</div>
-              <div style={{ fontSize: "28px", fontWeight: "bold", color: "#1B2A4A", marginBottom: "8px" }}>47</div>
-              <div style={{ fontSize: "12px", color: "#D97706" }}>+3 today</div>
-            </div>
-            <div style={{ flex: "1 1 200px", backgroundColor: "#FFFFFF", borderRadius: "12px", border: "1px solid #E2E8F0", padding: "20px" }}>
-              <div style={{ fontSize: "14px", color: "#64748B", marginBottom: "8px" }}>Resolved Today</div>
-              <div style={{ fontSize: "28px", fontWeight: "bold", color: "#16A34A", marginBottom: "8px" }}>12</div>
-              <div style={{ fontSize: "12px", color: "#16A34A" }}>↑ from 8 yesterday</div>
-            </div>
-            <div style={{ flex: "1 1 200px", backgroundColor: "#FFFFFF", borderRadius: "12px", border: "1px solid #E2E8F0", padding: "20px" }}>
-              <div style={{ fontSize: "14px", color: "#64748B", marginBottom: "8px" }}>SLA At Risk</div>
-              <div style={{ fontSize: "28px", fontWeight: "bold", color: "#DC2626", marginBottom: "8px" }}>5</div>
-              <div style={{ fontSize: "12px", color: "#DC2626" }}>⚠ Need attention</div>
-            </div>
-            <div style={{ flex: "1 1 200px", backgroundColor: "#FFFFFF", borderRadius: "12px", border: "1px solid #E2E8F0", padding: "20px" }}>
-              <div style={{ fontSize: "14px", color: "#64748B", marginBottom: "8px" }}>Avg Resolution</div>
-              <div style={{ fontSize: "28px", fontWeight: "bold", color: "#1B2A4A", marginBottom: "8px" }}>1.8 days</div>
-              <div style={{ fontSize: "12px", color: "#16A34A" }}>↓ 0.5 days this week</div>
-            </div>
-          </div>
-
-          {/* CASCADE ALERT BANNER */}
-          {cascadeAlert && (
-            <div
-              style={{
-                background: "#FEF2F2",
-                border: "1px solid #FECACA",
-                borderLeft: "4px solid #DC2626",
-                borderRadius: 8,
-                padding: "16px 20px",
-                marginBottom: 24,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: 16,
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#DC2626", marginBottom: 4 }}>
-                  🚨 CASCADE ALERT — {cascadeAlert.category} · {cascadeAlert.ward}
-                </div>
-                <div style={{ fontSize: 13, color: "#991B1B", marginTop: 4 }}>
-                  {cascadeAlert.caseCount || "Multiple"} complaints in 72 hours · Probable systemic issue
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => router.push("/cases")}
-                  style={{ background: "#2563EB", color: "white", border: "none", borderRadius: 8, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
-                  View Cases →
-                </button>
-                <button onClick={handleEscalate}
-                  style={{ background: "white", color: "#DC2626", border: "1px solid #FECACA", borderRadius: 8, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
-                  Escalate
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* PRIORITY QUEUE TABLE */}
-          <div style={{ backgroundColor: "#FFFFFF", borderRadius: "12px", border: "1px solid #E2E8F0", overflow: "hidden" }}>
-            <div style={{ padding: "20px", borderBottom: "1px solid #E2E8F0" }}>
-              <div style={{ fontSize: "16px", fontWeight: "bold", color: "#1B2A4A" }}>AI Priority Queue</div>
-              <div style={{ fontSize: "12px", color: "#94A3B8", marginTop: "4px" }}>Sorted by urgency score</div>
-            </div>
-
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-                <thead>
-                  <tr style={{ backgroundColor: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
-                    <th style={{ padding: "12px 20px", fontSize: "12px", color: "#64748B", fontWeight: "600" }}>Case ID</th>
-                    <th style={{ padding: "12px 20px", fontSize: "12px", color: "#64748B", fontWeight: "600" }}>Description</th>
-                    <th style={{ padding: "12px 20px", fontSize: "12px", color: "#64748B", fontWeight: "600" }}>Ward</th>
-                    <th style={{ padding: "12px 20px", fontSize: "12px", color: "#64748B", fontWeight: "600" }}>Category</th>
-                    <th style={{ padding: "12px 20px", fontSize: "12px", color: "#64748B", fontWeight: "600" }}>Urgency</th>
-                    <th style={{ padding: "12px 20px", fontSize: "12px", color: "#64748B", fontWeight: "600" }}>Status</th>
-                    <th style={{ padding: "12px 20px", fontSize: "12px", color: "#64748B", fontWeight: "600" }}>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cases.length > 0 ? cases.map((row, idx) => (
-                    <tr
-                      key={idx}
-                      onClick={() => router.push(`/cases/${row.id}`)}
-                      style={{ borderBottom: "1px solid #E2E8F0", cursor: "pointer" }}>
-                      <td style={{ padding: "16px 20px", fontSize: "14px", color: "#1B2A4A", fontWeight: "500" }}>{row.id}</td>
-                      <td style={{ padding: "16px 20px", fontSize: "14px", color: "#1B2A4A" }}>{row.description?.substring(0, 40)}{row.description?.length > 40 ? '...' : ''}</td>
-                      <td style={{ padding: "16px 20px", fontSize: "14px", color: "#64748B" }}>{row.ward}</td>
-                      <td style={{ padding: "16px 20px", fontSize: "14px", color: "#64748B" }}>{row.category}</td>
-                      <td style={{ padding: "16px 20px" }}>
-                        <UrgencyBadge urgency={row.urgencyScore >= 80 ? "CRITICAL" : row.urgencyScore >= 60 ? "HIGH" : row.urgencyScore >= 30 ? "MEDIUM" : "LOW"} />
-                      </td>
-                      <td style={{ padding: "16px 20px", fontSize: "14px", color: "#64748B" }}>{row.status?.replace('_', ' ')}</td>
-                      <td style={{ padding: "16px 20px" }}>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); router.push(`/cases/${row.id}`) }}
-                          style={{ backgroundColor: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: "6px", padding: "6px 12px", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  )) : <tr><td colSpan={7} style={{ padding: "16px", textAlign: "center", color: "#64748B" }}>No cases found</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </main>
+        </div>
       </div>
+
+      {/* AI Brief Card */}
+      <div style={{
+        background: 'white', borderRadius: 12,
+        border: '1px solid #E2E8F0',
+        padding: '20px 24px', marginBottom: 24,
+      }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between',
+          alignItems: 'center', marginBottom: 8,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 18 }}>🤖</span>
+            <span style={{
+              fontSize: 15, fontWeight: 700, color: '#1B2A4A',
+            }}>
+              AI Situation Brief
+            </span>
+          </div>
+          <button style={{
+            background: 'none', border: 'none',
+            color: '#2563EB', cursor: 'pointer',
+            fontSize: 13, fontWeight: 500,
+          }}>
+            Refresh ↺
+          </button>
+        </div>
+        <p style={{ fontSize: 12, color: '#94A3B8', margin: '0 0 12px' }}>
+          Generated at 8:30 AM
+        </p>
+        <div style={{
+          background: '#EFF6FF',
+          borderLeft: '3px solid #2563EB',
+          borderRadius: 8, padding: '12px 16px',
+          fontSize: 14, color: '#1B2A4A', lineHeight: 1.6,
+        }}>
+          3 critical water supply cases in Ward 7 require immediate 
+          attention — cascade pattern detected. Officer Kumar is 
+          approaching SLA breach on Case #1038. Prioritize water 
+          cases before electrical queue today.
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: 16, marginBottom: 24,
+      }}>
+        {[
+          { label: 'Open Cases', value: '47',
+            sub: '+3 today', color: '#1B2A4A', subColor: '#D97706' },
+          { label: 'Resolved Today', value: '12',
+            sub: '↑ 1 from 8 yesterday', color: '#16A34A',
+            subColor: '#16A34A' },
+          { label: 'SLA At Risk', value: '5',
+            sub: '⚠ Need attention', color: '#DC2626',
+            subColor: '#DC2626' },
+          { label: 'Avg Resolution', value: '1.8 days',
+            sub: '↓ 0.5 days this week', color: '#1B2A4A',
+            subColor: '#16A34A' },
+        ].map((card, i) => (
+          <div key={i} style={{
+            background: 'white', borderRadius: 12,
+            border: '1px solid #E2E8F0', padding: '20px',
+          }}>
+            <p style={{
+              fontSize: 13, color: '#64748B',
+              margin: '0 0 8px',
+            }}>
+              {card.label}
+            </p>
+            <p style={{
+              fontSize: 28, fontWeight: 700,
+              color: card.color, margin: '0 0 6px',
+            }}>
+              {card.value}
+            </p>
+            <p style={{
+              fontSize: 12, color: card.subColor, margin: 0,
+            }}>
+              {card.sub}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Cascade Alert */}
+      <div style={{
+        background: '#FEF2F2',
+        borderTop: '1px solid #FECACA',
+        borderRight: '1px solid #FECACA',
+        borderBottom: '1px solid #FECACA',
+        borderLeft: '4px solid #DC2626',
+        borderRadius: 8,
+        padding: '16px 20px',
+        marginBottom: 24,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}>
+        <div>
+          <div style={{
+            fontWeight: 700, color: '#DC2626', fontSize: 15,
+          }}>
+            🚨 CASCADE ALERT — Water Supply · Ward 7
+          </div>
+          <div style={{
+            color: '#991B1B', fontSize: 13, marginTop: 4,
+          }}>
+            4 complaints in 72 hours · Probable systemic issue
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => router.push('/cases')}
+            style={{
+              background: '#2563EB', color: 'white',
+              border: 'none', borderRadius: 8,
+              padding: '8px 16px', cursor: 'pointer',
+              fontSize: 13, fontWeight: 600,
+            }}>
+            View Cases →
+          </button>
+          <button style={{
+            background: 'white', color: '#DC2626',
+            border: '1px solid #FECACA',
+            borderRadius: 8, padding: '8px 16px',
+            cursor: 'pointer', fontSize: 13, fontWeight: 600,
+          }}>
+            Escalate
+          </button>
+        </div>
+      </div>
+
     </div>
   );
 }
