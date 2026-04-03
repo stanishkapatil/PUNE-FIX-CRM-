@@ -59,6 +59,7 @@ export default function MLADashboardPage() {
   }, [user, loading, router]);
 
   const handleSignOut = async () => {
+    await fetch("/api/v1/auth/session", { method: "DELETE" });
     await signOut(firebaseAuth);
     router.replace("/login");
   };

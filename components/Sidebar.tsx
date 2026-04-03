@@ -14,6 +14,7 @@ export function Sidebar({ activePage }: { activePage?: string } = {}) {
 
   const handleLogout = async () => {
     try {
+      await fetch("/api/v1/auth/session", { method: "DELETE" });
       await signOut(firebaseAuth);
       router.push("/login");
     } catch (e) {
@@ -47,7 +48,7 @@ export function Sidebar({ activePage }: { activePage?: string } = {}) {
       }}
     >
       <div style={{ padding: "24px 16px" }}>
-        <div style={{ fontSize: "18px", fontWeight: "bold", color: "#FFFFFF" }}>P-CRM</div>
+        <div style={{ fontSize: "18px", fontWeight: "bold", color: "#FFFFFF" }}>Pune Fix</div>
         <div style={{ fontSize: "12px", color: "#94A3B8", marginTop: "4px" }}>Staff Portal</div>
       </div>
 

@@ -69,11 +69,28 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
         const cred = await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
+        const idToken = await cred.user.getIdToken();
+        
+        // Sync with server session cookie
+        await fetch("/api/v1/auth/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken }),
+        });
+
         const userDoc = await getDoc(doc(firebaseDb, "users", cred.user.uid));
         
         let fetchedRole: UserRole = null;
         if (userDoc.exists()) {
             fetchedRole = userDoc.data().role as UserRole;
+        }
+
+        // Check for ?next= redirect
+        const params = new URLSearchParams(window.location.search);
+        const next = params.get("next");
+        if (next && next.startsWith("/")) {
+          router.push(next);
+          return;
         }
 
         if (fetchedRole === "admin" || fetchedRole === "staff" || fetchedRole === "supervisor") router.push("/dashboard");
