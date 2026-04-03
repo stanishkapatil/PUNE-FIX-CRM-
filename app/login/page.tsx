@@ -51,8 +51,9 @@ export default function LoginPage() {
   useEffect(() => {
     if (!loading && user) {
         // Redirection logic for existing users
-        if (role === "admin") router.replace("/admin");
+        if (role === "admin" || role === "staff" || role === "supervisor") router.replace("/dashboard");
         else if (role === "mla") router.replace("/mla");
+        else if (role === "citizen") router.replace("/");
         else router.replace("/dashboard");
     }
   }, [user, role, loading, router]);
@@ -75,8 +76,9 @@ export default function LoginPage() {
             fetchedRole = userDoc.data().role as UserRole;
         }
 
-        if (fetchedRole === "admin") router.push("/dashboard");
+        if (fetchedRole === "admin" || fetchedRole === "staff" || fetchedRole === "supervisor") router.push("/dashboard");
         else if (fetchedRole === "mla") router.push("/mla");
+        else if (fetchedRole === "citizen") router.push("/");
         else router.push("/dashboard");
         
     } catch (error: any) {
