@@ -66,7 +66,7 @@ export default function HomePage() {
             >
               ✦ AI-POWERED CITY MANAGEMENT
             </div>
-            
+
             <h1
               style={{
                 fontSize: "36px",
@@ -89,7 +89,7 @@ export default function HomePage() {
             >
               Help us improve your city.
             </h2>
-            
+
             <p
               style={{
                 fontSize: "14px",
@@ -123,7 +123,7 @@ export default function HomePage() {
               >
                 File a Complaint →
               </Link>
-              
+
               <form onSubmit={handleTrackSubmit} style={{ display: "flex" }}>
                 <input
                   type="text"
@@ -165,7 +165,7 @@ export default function HomePage() {
               width: "280px",
               height: "180px",
               borderRadius: "12px",
-              backgroundImage: "url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=560')",
+              backgroundImage: "url('https://img.freepik.com/premium-photo/aerial-view-pune-city-maharashtra-india-skyscrapers-modern-architecture-dominate_1268487-11926.jpg')",
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
